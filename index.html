@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Ultimate Solution</title>
+    <!-- Montserrat and Creepster Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Creepster&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Hide scrollbar technique - only main scrolls, body static */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden !important;  /* Prevent body scroll, main will scroll */
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #ffffff;
+            color: #1a202c;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            touch-action: pan-y pinch-zoom;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        /* Main content scrollable container - hide scrollbar */
+        main {
+            flex: 1;
+            overflow-y: auto;            /* enables scrolling */
+            overflow-x: hidden;
+            -ms-overflow-style: none;    /* IE and Edge */
+            scrollbar-width: none;       /* Firefox */
+        }
+        main::-webkit-scrollbar {
+            display: none;               /* Chrome, Safari, Edge */
+        }
+
+        /* Header stays fixed at top */
+        header {
+            flex-shrink: 0;
+        }
+
+        /* Other styles unchanged */
+        .header-shadow {
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .brand-font {
+            font-family: 'Creepster', system-ui;
+        }
+        .link-decoration {
+            color: #3182ce;
+            text-decoration: underline;
+            text-decoration-thickness: 1px;
+            text-underline-offset: 4px;
+        }
+        .link-decoration:hover {
+            color: #2c5282;
+        }
+        .title-underline {
+            text-decoration: underline;
+            text-decoration-thickness: 2px;
+            text-underline-offset: 6px;
+        }
+        .aspect-16-9 {
+            aspect-ratio: 16 / 9;
+            width: 100%;
+        }
+        .clickable-title {
+            cursor: pointer;
+            transition: opacity 0.2s ease;
+        }
+        .clickable-title:hover {
+            opacity: 0.85;
+        }
+        .toast-notification {
+            transition: opacity 0.25s ease-in-out, visibility 0.25s;
+            opacity: 0;
+            visibility: hidden;
+            backdrop-filter: blur(4px);
+        }
+        .toast-notification.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        .loader {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 3rem 1rem;
+        }
+        .loader-dot {
+            width: 12px;
+            height: 12px;
+            background-color: #3182ce;
+            border-radius: 50%;
+            margin: 0 6px;
+            animation: pulse 1.2s infinite ease-in-out;
+        }
+        .loader-dot:nth-child(2) { animation-delay: 0.2s; }
+        .loader-dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes pulse {
+            0%, 100% { opacity: 0.3; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+        .ad-banner-section {
+            background-color: #eff6ff;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            transition: box-shadow 0.2s ease;
+        }
+        .ad-banner-section:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        .top-margin-adjust {
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <header class="header-shadow bg-white border-b border-gray-100 sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+            <div class="bg-black px-4 py-2 rounded-md">
+                <h1 id="brandHeaderText" class="brand-font text-white text-2xl tracking-wider whitespace-nowrap">
+                    ULTIMATE SOLUTION
+                </h1>
+            </div>
+            <div class="flex items-center space-x-3">
+                <div class="p-2 text-blue-500 bg-blue-50 rounded-md cursor-pointer hover:bg-blue-100 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </div>
+                <div class="p-2 text-white bg-blue-500 rounded-md cursor-pointer hover:bg-blue-600 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content (scrollable) - includes all content and footer naturally -->
+    <main>
+        <div class="max-w-3xl mx-auto px-6 py-8 top-margin-adjust">
+            <!-- AD BANNERS container -->
+            <div id="ad-banners-container"></div>
+            <!-- Dynamic sections container (ultimate solutions) -->
+            <div id="dynamic-sections-container"></div>
+        </div>
+
+        <!-- Footer - now inside main, will scroll with content, no sticky behavior -->
+        <footer class="py-12 bg-gray-50 mt-16 border-t border-gray-200">
+            <div class="max-w-6xl mx-auto px-4 text-center">
+                <span class="text-gray-500 font-bold tracking-widest text-sm title-underline">
+                    ©2026 ULTIMATE SOLUTION
+                </span>
+            </div>
+        </footer>
+    </main>
+
+    <!-- Custom Toast Container -->
+    <div id="customToast" class="fixed bottom-6 left-1/2 transform -translate-x-1/2 md:left-auto md:right-6 md:translate-x-0 z-50 toast-notification bg-gradient-to-r from-red-600 to-red-700 text-white px-6 py-3 rounded-xl shadow-2xl flex items-center gap-3 font-semibold text-base border border-red-400">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span id="toastMessage">Comming Soon !!</span>
+    </div>
+
+    <script>
+        (function() {
+            // ---------- CONSTANTS ----------
+            const API_BASE = "https://dilshadalmm-yosv.onrender.com";
+            const AD_BANNERS_ENDPOINT = `${API_BASE}/api/ad-banners`;
+            const ULTIMATE_ENDPOINT = `${API_BASE}/api/ultimate-solutions`;
+            const QUIZ_BASE_URL = "quiz.html";
+            
+            const brandHeaderElem = document.getElementById('brandHeaderText');
+            let rawBrand = brandHeaderElem ? brandHeaderElem.innerText.trim() : "ULTIMATE SOLUTION";
+            const brandNameForFilter = rawBrand.toUpperCase().replace(/\s+/g, '_');
+            
+            function showToast(message = "Comming Soon !!") {
+                const toastEl = document.getElementById('customToast');
+                const messageSpan = document.getElementById('toastMessage');
+                if (!toastEl) return;
+                if (messageSpan) messageSpan.innerText = message;
+                toastEl.classList.remove('show');
+                void toastEl.offsetWidth;
+                toastEl.classList.add('show');
+                setTimeout(() => {
+                    toastEl.classList.remove('show');
+                }, 2300);
+            }
+            
+            function redirectToQuiz(className, subject, chapter) {
+                const encodedClassName = encodeURIComponent(className || '');
+                const encodedSubject = encodeURIComponent(subject || '');
+                const encodedChapter = encodeURIComponent(chapter || '');
+                const finalUrl = `${QUIZ_BASE_URL}?className=${encodedClassName}&subject=${encodedSubject}&chapter=${encodedChapter}`;
+                window.location.href = finalUrl;
+            }
+            
+            // ========== AD BANNERS ==========
+            function createAdBannerSection(item) {
+                const {
+                    titleText = "Special Offer",
+                    imageUrl = "",
+                    linkText = "Learn More",
+                    linkAddress = "#",
+                    order = 0
+                } = item;
+                
+                const section = document.createElement('section');
+                section.className = "mb-16 ad-banner-section";
+                
+                const titleEl = document.createElement('h2');
+                titleEl.textContent = titleText;
+                titleEl.className = "text-3xl font-extrabold text-gray-900 mb-4 tracking-tight leading-tight uppercase title-underline";
+                
+                const imageContainer = document.createElement('div');
+                imageContainer.className = "aspect-16-9 bg-gray-100 rounded-lg overflow-hidden border border-gray-200 shadow-sm mb-6";
+                const img = document.createElement('img');
+                img.src = imageUrl && imageUrl.trim() !== "" ? imageUrl : "https://images.unsplash.com/photo-1581091226033-d5c48150dbaa?q=80&w=1200&auto=format&fit=crop";
+                img.alt = titleText;
+                img.className = "w-full h-full object-cover";
+                img.loading = "lazy";
+                img.onerror = function() {
+                    if (!this.src.includes('placeholder-medical')) {
+                        this.src = "https://images.unsplash.com/photo-1581091226033-d5c48150dbaa?q=80&w=1200&auto=format&fit=crop";
+                    }
+                };
+                imageContainer.appendChild(img);
+                
+                const linkEl = document.createElement('a');
+                linkEl.textContent = linkText;
+                linkEl.className = "link-decoration text-xl font-medium inline-block";
+                linkEl.href = linkAddress && linkAddress !== "#" ? linkAddress : "javascript:void(0)";
+                linkEl.target = "_blank";
+                linkEl.rel = "noopener noreferrer";
+                if (!linkAddress || linkAddress === "#") {
+                    linkEl.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        showToast("Link coming soon");
+                    });
+                }
+                
+                section.appendChild(titleEl);
+                section.appendChild(imageContainer);
+                section.appendChild(linkEl);
+                return section;
+            }
+            
+            async function renderAdBanners(container) {
+                if (!container) return;
+                container.innerHTML = '';
+                const loaderDiv = document.createElement('div');
+                loaderDiv.className = 'loader';
+                for (let i = 0; i < 3; i++) {
+                    const dot = document.createElement('div');
+                    dot.className = 'loader-dot';
+                    loaderDiv.appendChild(dot);
+                }
+                container.appendChild(loaderDiv);
+                
+                try {
+                    const url = `${AD_BANNERS_ENDPOINT}?brandName=${encodeURIComponent(brandNameForFilter)}`;
+                    const response = await fetch(url);
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    const result = await response.json();
+                    if (!result || result.success !== true || !Array.isArray(result.data)) {
+                        console.warn("Ad banners: unexpected response format", result);
+                        container.innerHTML = '';
+                        return;
+                    }
+                    
+                    let banners = result.data.filter(b => b.brandName === brandNameForFilter);
+                    banners.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+                    
+                    if (banners.length === 0) {
+                        container.innerHTML = '';
+                        return;
+                    }
+                    
+                    container.innerHTML = '';
+                    banners.forEach(banner => {
+                        const bannerSection = createAdBannerSection(banner);
+                        container.appendChild(bannerSection);
+                    });
+                } catch (err) {
+                    console.error("Failed to load ad banners:", err);
+                    container.innerHTML = '';
+                }
+            }
+            
+            // ========== ULTIMATE SOLUTIONS ==========
+            function createSectionElement(item) {
+                const {
+                    titleText = "MECEE Question Set",
+                    subtleText = "Comprehensive collection of past questions.",
+                    downloadText = "Download Solutions",
+                    downloadLink = "#",
+                    imageUrl = "",
+                    className = "",
+                    subject = "",
+                    chapter = "",
+                    order = 0
+                } = item;
+                
+                const section = document.createElement('section');
+                section.className = "mb-16";
+                
+                const titleEl = document.createElement('h2');
+                titleEl.textContent = titleText;
+                titleEl.className = "text-3xl font-extrabold text-gray-900 mb-4 tracking-tight leading-tight uppercase title-underline clickable-title";
+                titleEl.setAttribute('role', 'button');
+                titleEl.setAttribute('tabindex', '0');
+                titleEl.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    redirectToQuiz(className, subject, chapter);
+                });
+                titleEl.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        redirectToQuiz(className, subject, chapter);
+                    }
+                });
+                
+                const descEl = document.createElement('p');
+                descEl.textContent = subtleText;
+                descEl.className = "text-lg text-gray-600 mb-3 font-normal opacity-90";
+                
+                const downloadLinkEl = document.createElement('a');
+                downloadLinkEl.textContent = downloadText;
+                downloadLinkEl.className = "link-decoration text-xl font-medium inline-block mb-6 download-link";
+                downloadLinkEl.href = "javascript:void(0)";
+                downloadLinkEl.style.cursor = "pointer";
+                downloadLinkEl.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showToast("Comming Soon !!");
+                });
+                
+                const imageContainer = document.createElement('div');
+                imageContainer.className = "aspect-16-9 bg-gray-100 rounded-lg overflow-hidden border border-gray-200 shadow-sm";
+                const img = document.createElement('img');
+                img.src = imageUrl && imageUrl.trim() !== "" ? imageUrl : "https://images.unsplash.com/photo-1505751172876-fa1923c5c528?q=80&w=1200&auto=format&fit=crop";
+                img.alt = titleText;
+                img.className = "w-full h-full object-cover";
+                img.loading = "lazy";
+                img.onerror = function() {
+                    if (!this.src.includes('placeholder-medical')) {
+                        this.src = "https://images.unsplash.com/photo-1581091226033-d5c48150dbaa?q=80&w=1200&auto=format&fit=crop";
+                    }
+                };
+                imageContainer.appendChild(img);
+                
+                // NEW: Make the entire thumbnail image container clickable, redirecting exactly as title does
+                // No UI changes (no cursor pointer, no extra styling) - only interactive behavior added.
+                imageContainer.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    redirectToQuiz(className, subject, chapter);
+                });
+                
+                section.appendChild(titleEl);
+                section.appendChild(descEl);
+                section.appendChild(downloadLinkEl);
+                section.appendChild(imageContainer);
+                return section;
+            }
+            
+            function showLoading(container) {
+                container.innerHTML = '';
+                const loaderWrapper = document.createElement('div');
+                loaderWrapper.className = 'loader';
+                for (let i = 0; i < 3; i++) {
+                    const dot = document.createElement('div');
+                    dot.className = 'loader-dot';
+                    loaderWrapper.appendChild(dot);
+                }
+                container.appendChild(loaderWrapper);
+            }
+            
+            function showError(container, errorMsg = "Failed to load sections. Please try again later.") {
+                container.innerHTML = '';
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'text-center py-12 px-4 bg-gray-50 rounded-xl border border-gray-200';
+                errorDiv.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-red-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <p class="text-gray-700 font-medium">${errorMsg}</p>
+                    <button id="retrySectionsBtn" class="mt-4 bg-blue-500 hover:bg-blue-600 text-white px-5 py-2 rounded-lg transition-colors shadow-sm">Retry</button>
+                `;
+                container.appendChild(errorDiv);
+                const retryBtn = document.getElementById('retrySectionsBtn');
+                if (retryBtn) {
+                    retryBtn.addEventListener('click', () => {
+                        fetchAndRenderUltimateSolutions(container);
+                    });
+                }
+            }
+            
+            async function fetchAndRenderUltimateSolutions(container) {
+                showLoading(container);
+                try {
+                    const response = await fetch(ULTIMATE_ENDPOINT);
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    const result = await response.json();
+                    if (!result || result.success !== true || !Array.isArray(result.data)) {
+                        console.warn("Ultimate solutions: invalid format", result);
+                        throw new Error("Invalid data format");
+                    }
+                    let sectionsData = result.data;
+                    sectionsData.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+                    
+                    if (sectionsData.length === 0) {
+                        container.innerHTML = '';
+                        const emptyMsg = document.createElement('div');
+                        emptyMsg.className = 'text-center py-12 text-gray-500 text-lg';
+                        emptyMsg.innerText = 'No question sections available at the moment.';
+                        container.appendChild(emptyMsg);
+                        return;
+                    }
+                    
+                    container.innerHTML = '';
+                    sectionsData.forEach(item => {
+                        const sectionEl = createSectionElement(item);
+                        container.appendChild(sectionEl);
+                    });
+                } catch (err) {
+                    console.error("Error fetching ultimate-solutions:", err);
+                    showError(container, "Unable to load MECEE sections. Check your connection or try again.");
+                }
+            }
+            
+            // Initialize both containers
+            document.addEventListener('DOMContentLoaded', () => {
+                const adContainer = document.getElementById('ad-banners-container');
+                const ultimateContainer = document.getElementById('dynamic-sections-container');
+                
+                if (adContainer) renderAdBanners(adContainer).catch(e => console.warn(e));
+                if (ultimateContainer) fetchAndRenderUltimateSolutions(ultimateContainer).catch(e => console.warn(e));
+            });
+        })();
+    </script>
+</body>
+</html>
