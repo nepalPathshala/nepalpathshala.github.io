@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>ULTIMATE SOLUTION | Notes</title>
+    <!-- Montserrat and Creepster Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Creepster&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Hide scrollbar technique - only main scrolls, body static */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden !important;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #ffffff;
+            color: #1a202c;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            touch-action: pan-y pinch-zoom;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        main {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        main::-webkit-scrollbar {
+            display: none;
+        }
+
+        header {
+            flex-shrink: 0;
+        }
+
+        .header-shadow {
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .brand-font {
+            font-family: 'Creepster', system-ui;
+        }
+        .title-underline {
+            text-decoration: underline;
+            text-decoration-thickness: 2px;
+            text-underline-offset: 6px;
+        }
+        .toast-notification {
+            transition: opacity 0.25s ease-in-out, visibility 0.25s;
+            opacity: 0;
+            visibility: hidden;
+            backdrop-filter: blur(4px);
+        }
+        .toast-notification.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        .loader {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 3rem 1rem;
+        }
+        .loader-dot {
+            width: 12px;
+            height: 12px;
+            background-color: #3182ce;
+            border-radius: 50%;
+            margin: 0 6px;
+            animation: pulse 1.2s infinite ease-in-out;
+        }
+        .loader-dot:nth-child(2) { animation-delay: 0.2s; }
+        .loader-dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes pulse {
+            0%, 100% { opacity: 0.3; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+        
+        /* Ad banner styles (same as index1.html) */
+        .ad-banner-section {
+            background-color: #eff6ff;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            transition: box-shadow 0.2s ease;
+            margin-bottom: 2rem;
+        }
+        .ad-banner-section:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        .aspect-16-9 {
+            aspect-ratio: 16 / 9;
+            width: 100%;
+        }
+        .link-decoration {
+            color: #3182ce;
+            text-decoration: underline;
+            text-decoration-thickness: 1px;
+            text-underline-offset: 4px;
+        }
+        .link-decoration:hover {
+            color: #2c5282;
+        }
+        
+        /* Note styles - no containers, free elements */
+        .note-title {
+            font-size: 1.875rem;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.025em;
+            text-decoration: underline;
+            text-decoration-thickness: 2px;
+            text-underline-offset: 6px;
+        }
+        .note-subtle {
+            font-size: 1.125rem;
+            color: #475569;
+            margin-bottom: 1.5rem;
+            font-weight: 400;
+        }
+        .note-divider {
+            border-top: 1px solid #e2e8f0;
+            margin: 1rem 0 2rem 0;
+        }
+        .section-heading {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #000000;
+            text-decoration: underline;
+            margin: 1.5rem 0 1rem 0;
+        }
+        .content-text {
+            font-size: 1rem;
+            font-weight: normal;
+            color: #000000;
+            line-height: 1.6;
+            margin: 0.75rem 0;
+        }
+        .content-image {
+            width: 100%;
+            border-radius: 4px;
+            max-height: 300px;
+            object-fit: cover;
+            margin: 0.75rem 0;
+        }
+        .error-box {
+            background-color: #fee2e2;
+            border: 1px solid #fecaca;
+            border-radius: 1rem;
+            padding: 2rem;
+            text-align: center;
+            color: #991b1b;
+        }
+        .info-box {
+            background-color: #dbeafe;
+            border-radius: 1rem;
+            padding: 2rem;
+            text-align: center;
+            color: #1e40af;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header-shadow bg-white border-b border-gray-100 sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+            <div class="bg-black px-4 py-2 rounded-md">
+                <h1 id="brandHeaderText" class="brand-font text-white text-2xl tracking-wider whitespace-nowrap">
+                    ULTIMATE SOLUTION
+                </h1>
+            </div>
+            <div class="flex items-center space-x-3">
+                <div class="p-2 text-blue-500 bg-blue-50 rounded-md cursor-pointer hover:bg-blue-100 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </div>
+                <div class="p-2 text-white bg-blue-500 rounded-md cursor-pointer hover:bg-blue-600 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="max-w-3xl md:max-w-6xl mx-auto px-4 md:px-6 py-8">
+            <!-- Ad Banners Container (same as index1.html) -->
+            <div id="ad-banners-container"></div>
+            
+            <!-- Dynamic Content Container for Notes -->
+            <div id="dynamic-sections-container">
+                <div class="loader">
+                    <div class="loader-dot"></div>
+                    <div class="loader-dot"></div>
+                    <div class="loader-dot"></div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="py-12 bg-gray-50 mt-16 border-t border-gray-200">
+            <div class="max-w-6xl mx-auto px-4 text-center">
+                <span class="text-gray-500 font-bold tracking-widest text-sm title-underline">
+                    ©2026 ULTIMATE SOLUTION
+                </span>
+            </div>
+        </footer>
+    </main>
+
+    <div id="customToast" class="fixed bottom-6 left-1/2 transform -translate-x-1/2 md:left-auto md:right-6 md:translate-x-0 z-50 toast-notification bg-gradient-to-r from-red-600 to-red-700 text-white px-6 py-3 rounded-xl shadow-2xl flex items-center gap-3 font-semibold text-base border border-red-400">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span id="toastMessage">Error loading notes</span>
+    </div>
+
+    <script>
+        (function() {
+            // ---------- API CONFIG ----------
+            const API_BASE = "https://dilshadalmm-yosv.onrender.com";
+            const AD_BANNERS_ENDPOINT = `${API_BASE}/api/ad-banners`;
+            const NOTES_ENDPOINT = `${API_BASE}/api/notes`;
+
+            const adContainer = document.getElementById('ad-banners-container');
+            const dynamicContainer = document.getElementById('dynamic-sections-container');
+            
+            let rawBrand = "ULTIMATE SOLUTION";
+            const brandNameForFilter = rawBrand.toUpperCase().replace(/\s+/g, '_');
+
+            // Helper: show toast
+            function showToast(message = "Something went wrong") {
+                const toastEl = document.getElementById('customToast');
+                const messageSpan = document.getElementById('toastMessage');
+                if (!toastEl) return;
+                if (messageSpan) messageSpan.innerText = message;
+                toastEl.classList.remove('show');
+                void toastEl.offsetWidth;
+                toastEl.classList.add('show');
+                setTimeout(() => {
+                    toastEl.classList.remove('show');
+                }, 2300);
+            }
+
+            // Show loading state for notes
+            function showLoading() {
+                if (!dynamicContainer) return;
+                dynamicContainer.innerHTML = `
+                    <div class="loader">
+                        <div class="loader-dot"></div>
+                        <div class="loader-dot"></div>
+                        <div class="loader-dot"></div>
+                    </div>
+                `;
+            }
+
+            function showError(message) {
+                if (!dynamicContainer) return;
+                dynamicContainer.innerHTML = `
+                    <div class="error-box">
+                        <svg class="w-12 h-12 mx-auto mb-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <p class="font-semibold text-lg">${message}</p>
+                    </div>
+                `;
+            }
+
+            function showInfo(message) {
+                if (!dynamicContainer) return;
+                dynamicContainer.innerHTML = `
+                    <div class="info-box">
+                        <p class="font-semibold text-lg">${message}</p>
+                    </div>
+                `;
+            }
+
+            // ========== AD BANNERS (same as index1.html) ==========
+            function createAdBannerSection(item) {
+                const { titleText = "Special Offer", imageUrl = "", linkText = "Learn More", linkAddress = "#", order = 0 } = item;
+                const section = document.createElement('section');
+                section.className = "mb-8 ad-banner-section";
+                const titleEl = document.createElement('h2');
+                titleEl.textContent = titleText;
+                titleEl.className = "text-3xl font-extrabold text-gray-900 mb-4 tracking-tight leading-tight uppercase title-underline";
+                const imageContainer = document.createElement('div');
+                imageContainer.className = "aspect-16-9 bg-gray-100 rounded-lg overflow-hidden border border-gray-200 shadow-sm mb-6";
+                const img = document.createElement('img');
+                img.src = imageUrl && imageUrl.trim() !== "" ? imageUrl : "https://images.unsplash.com/photo-1581091226033-d5c48150dbaa?q=80&w=1200&auto=format&fit=crop";
+                img.alt = titleText;
+                img.className = "w-full h-full object-cover";
+                img.loading = "lazy";
+                img.onerror = function() { if (!this.src.includes('placeholder-medical')) this.src = "https://images.unsplash.com/photo-1581091226033-d5c48150dbaa?q=80&w=1200&auto=format&fit=crop"; };
+                imageContainer.appendChild(img);
+                const linkEl = document.createElement('a');
+                linkEl.textContent = linkText;
+                linkEl.className = "link-decoration text-xl font-medium inline-block";
+                linkEl.href = linkAddress && linkAddress !== "#" ? linkAddress : "javascript:void(0)";
+                linkEl.target = "_blank";
+                linkEl.rel = "noopener noreferrer";
+                if (!linkAddress || linkAddress === "#") {
+                    linkEl.addEventListener('click', (e) => { e.preventDefault(); showToast("Link coming soon"); });
+                }
+                section.appendChild(titleEl);
+                section.appendChild(imageContainer);
+                section.appendChild(linkEl);
+                return section;
+            }
+            
+            async function renderAdBanners(container) {
+                if (!container) return;
+                container.innerHTML = '';
+                const loaderDiv = document.createElement('div');
+                loaderDiv.className = 'loader';
+                for (let i = 0; i < 3; i++) { const dot = document.createElement('div'); dot.className = 'loader-dot'; loaderDiv.appendChild(dot); }
+                container.appendChild(loaderDiv);
+                try {
+                    const url = `${AD_BANNERS_ENDPOINT}?brandName=${encodeURIComponent(brandNameForFilter)}`;
+                    const response = await fetch(url);
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    const result = await response.json();
+                    if (!result || result.success !== true || !Array.isArray(result.data)) { container.innerHTML = ''; return; }
+                    let banners = result.data.filter(b => b.brandName === brandNameForFilter);
+                    banners.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+                    if (banners.length === 0) { container.innerHTML = ''; return; }
+                    container.innerHTML = '';
+                    banners.forEach(banner => { container.appendChild(createAdBannerSection(banner)); });
+                } catch (err) { console.error(err); container.innerHTML = ''; }
+            }
+
+            // ========== NOTES FETCH & RENDER ==========
+            async function fetchNotes(className, subject, chapter) {
+                try {
+                    const url = `${NOTES_ENDPOINT}?className=${encodeURIComponent(className)}&subject=${encodeURIComponent(subject)}&chapter=${encodeURIComponent(chapter)}`;
+                    const res = await fetch(url);
+                    const data = await res.json();
+                    if (data.success && Array.isArray(data.data)) {
+                        return data.data;
+                    }
+                    return [];
+                } catch (err) {
+                    console.error("Failed to fetch notes:", err);
+                    return null;
+                }
+            }
+
+            // Render notes without any container wrappers
+            function renderNotes(notesArray) {
+                if (!dynamicContainer) return;
+                if (!notesArray || notesArray.length === 0) {
+                    showInfo("No notes found for the selected chapter.");
+                    return;
+                }
+                
+                // Clear container
+                dynamicContainer.innerHTML = '';
+                
+                // For each note, append title, subtle, divider, and sections directly (no extra containers)
+                for (const note of notesArray) {
+                    // Title
+                    const titleEl = document.createElement('h2');
+                    titleEl.textContent = note.titleText || 'Untitled Note';
+                    titleEl.className = 'note-title';
+                    dynamicContainer.appendChild(titleEl);
+                    
+                    // Subtle text
+                    const subtleEl = document.createElement('p');
+                    subtleEl.textContent = note.subtleText || '';
+                    subtleEl.className = 'note-subtle';
+                    dynamicContainer.appendChild(subtleEl);
+                    
+                    // Divider line
+                    const divider = document.createElement('hr');
+                    divider.className = 'note-divider';
+                    dynamicContainer.appendChild(divider);
+                    
+                    // Sections - each element is added directly (no wrapper div)
+                    const sections = note.sections || [];
+                    sections.sort((a, b) => (a.order || 0) - (b.order || 0));
+                    
+                    if (sections.length === 0) {
+                        const emptyMsg = document.createElement('p');
+                        emptyMsg.textContent = 'No sections available.';
+                        emptyMsg.className = 'text-gray-500 italic';
+                        dynamicContainer.appendChild(emptyMsg);
+                    } else {
+                        for (const section of sections) {
+                            // Heading
+                            const headingEl = document.createElement('h3');
+                            headingEl.textContent = section.heading || 'Section';
+                            headingEl.className = 'section-heading';
+                            dynamicContainer.appendChild(headingEl);
+                            
+                            // Content and image pairs - no container, just sequential elements
+                            const contentArray = section.content || [];
+                            const imageArray = section.imageUrl || [];
+                            const maxLen = Math.max(contentArray.length, imageArray.length);
+                            
+                            if (maxLen === 0) {
+                                const noContent = document.createElement('p');
+                                noContent.textContent = 'No content available.';
+                                noContent.className = 'text-gray-400';
+                                dynamicContainer.appendChild(noContent);
+                            } else {
+                                for (let i = 0; i < maxLen; i++) {
+                                    // Content text (if exists)
+                                    if (i < contentArray.length && contentArray[i] && contentArray[i].trim() !== '') {
+                                        const contentP = document.createElement('div');
+                                        contentP.className = 'content-text';
+                                        contentP.textContent = contentArray[i];
+                                        dynamicContainer.appendChild(contentP);
+                                    }
+                                    
+                                    // Image (if exists)
+                                    if (i < imageArray.length && imageArray[i] && imageArray[i].trim() !== '') {
+                                        const img = document.createElement('img');
+                                        img.src = imageArray[i];
+                                        img.alt = `Illustration ${i+1}`;
+                                        img.className = 'content-image';
+                                        img.loading = 'lazy';
+                                        img.onerror = function() { this.style.display = 'none'; };
+                                        dynamicContainer.appendChild(img);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Main initialization: read URL params, load notes, and also load ads
+            async function init() {
+                // Load ad banners (always at top)
+                renderAdBanners(adContainer).catch(e => console.warn(e));
+                
+                const urlParams = new URLSearchParams(window.location.search);
+                const className = urlParams.get('className');
+                const subject = urlParams.get('subject');
+                const chapter = urlParams.get('chapter');
+                
+                if (!className || !subject || !chapter) {
+                    showError("Missing parameters. Please provide className, subject, and chapter in the URL.");
+                    return;
+                }
+                
+                showLoading();
+                const notesData = await fetchNotes(className, subject, chapter);
+                if (notesData === null) {
+                    showError("Failed to load notes. Please check your connection and try again.");
+                } else if (notesData.length === 0) {
+                    showInfo("No notes available for this chapter.");
+                } else {
+                    renderNotes(notesData);
+                }
+            }
+            
+            // Start
+            init();
+        })();
+    </script>
+</body>
+</html>
