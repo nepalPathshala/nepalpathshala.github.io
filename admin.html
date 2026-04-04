@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Ultimate Solution - Dashboard</title>
+    <!-- Fonts & Tailwind -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, sendEmailVerification, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyC6NRjkwiazA-aYF4okvnLW4qpCyMg8O9E",
+            authDomain: "fir-f3d53.firebaseapp.com",
+            databaseURL: "https://fir-f3d53-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "fir-f3d53",
+            storageBucket: "fir-f3d53.firebasestorage.app",
+            messagingSenderId: "683707045028",
+            appId: "1:683707045028:web:93990fa0de8767dda90231"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        
+        window.auth = auth;
+        window.createUserWithEmailAndPassword = createUserWithEmailAndPassword;
+        window.signInWithEmailAndPassword = signInWithEmailAndPassword;
+        window.updateProfile = updateProfile;
+        window.sendEmailVerification = sendEmailVerification;
+        window.signOut = signOut;
+    </script>
+    <style>
+        body { font-family: 'Montserrat', sans-serif; background: #f1f5f9; }
+        .toast-notification { transition: opacity 0.25s ease; opacity: 0; visibility: hidden; backdrop-filter: blur(4px); }
+        .toast-notification.show { opacity: 1; visibility: visible; }
+        .loader { display: inline-block; width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: white; animation: spin 0.6s linear infinite; margin-left: 8px; vertical-align: middle; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .btn-loading { pointer-events: none; opacity: 0.7; }
+        .profile-img { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .form-card { transition: all 0.2s; }
+        .form-card:hover { box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body class="p-4 md:p-6">
+    <div class="max-w-7xl mx-auto">
+        <!-- Header with Logout -->
+        <div class="flex justify-between items-center mb-6">
+            <img src="https://i.postimg.cc/bw2vK1BT/Blue_Minimalist.png" alt="Logo" class="h-12 md:h-16 object-contain">
+            <button id="logoutBtn" class="bg-red-500 hover:bg-red-600 text-white px-5 py-2 rounded-full text-sm font-semibold shadow">Logout</button>
+        </div>
+
+        <!-- User Profile Section (hidden until login) -->
+        <div id="profileSection" class="bg-white rounded-2xl shadow-lg p-6 mb-8 hidden">
+            <div class="flex flex-col md:flex-row items-center gap-6">
+                <img id="profileImage" class="profile-img" src="https://via.placeholder.com/80" alt="Profile">
+                <div class="flex-1 text-center md:text-left">
+                    <h2 class="text-2xl font-bold text-gray-800" id="profileName">-</h2>
+                    <p class="text-gray-600" id="profileEmail">-</p>
+                    <p class="text-sm text-gray-500 mt-1">Role: <span id="profileRole">-</span> | Status: <span id="profileActive">-</span></p>
+                </div>
+                <div class="bg-indigo-50 p-3 rounded-xl text-center">
+                    <p class="text-sm text-indigo-700 font-semibold">Class Limit</p>
+                    <p class="text-2xl font-bold text-indigo-800" id="classLimit">0</p>
+                </div>
+            </div>
+            <div class="border-t mt-4 pt-4 grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+                <div><span class="font-semibold">Permitted Classes:</span> <span id="permittedClasses">-</span></div>
+                <div><span class="font-semibold">Subject Limits:</span> <span id="subjectLimits">-</span></div>
+                <div><span class="font-semibold">Chapter Limits:</span> <span id="chapterLimits">-</span></div>
+            </div>
+        </div>
+
+        <!-- Create Forms Grid -->
+        <div id="formsContainer" class="hidden grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Create Class Card -->
+            <div class="bg-white rounded-2xl shadow-md p-5 form-card">
+                <h3 class="text-xl font-bold text-indigo-700 mb-4">➕ Create Class</h3>
+                <form id="createClassForm">
+                    <input type="text" id="className" placeholder="Class Name (e.g., MBBS)" class="w-full border rounded-lg p-2 mb-3" required>
+                    <textarea id="classDesc" placeholder="Description (optional)" class="w-full border rounded-lg p-2 mb-3" rows="2"></textarea>
+                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 rounded-lg transition">Proceed</button>
+                </form>
+            </div>
+
+            <!-- Create Subject Card -->
+            <div class="bg-white rounded-2xl shadow-md p-5 form-card">
+                <h3 class="text-xl font-bold text-emerald-700 mb-4">📚 Create Subject</h3>
+                <form id="createSubjectForm">
+                    <select id="subjectClassId" class="w-full border rounded-lg p-2 mb-3" required><option value="">Select Class</option></select>
+                    <input type="text" id="subjectName" placeholder="Subject Name" class="w-full border rounded-lg p-2 mb-3" required>
+                    <textarea id="subjectDesc" placeholder="Description (optional)" class="w-full border rounded-lg p-2 mb-3" rows="2"></textarea>
+                    <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 rounded-lg transition">Proceed</button>
+                </form>
+            </div>
+
+            <!-- Create Chapter Card -->
+            <div class="bg-white rounded-2xl shadow-md p-5 form-card">
+                <h3 class="text-xl font-bold text-amber-700 mb-4">📖 Create Chapter</h3>
+                <form id="createChapterForm">
+                    <select id="chapterClassId" class="w-full border rounded-lg p-2 mb-3" required><option value="">Select Class</option></select>
+                    <select id="chapterSubjectId" class="w-full border rounded-lg p-2 mb-3" required disabled><option value="">First select class</option></select>
+                    <input type="text" id="chapterName" placeholder="Chapter Name" class="w-full border rounded-lg p-2 mb-3" required>
+                    <textarea id="chapterDesc" placeholder="Description (optional)" class="w-full border rounded-lg p-2 mb-3" rows="2"></textarea>
+                    <button type="submit" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-semibold py-2 rounded-lg transition">Proceed</button>
+                </form>
+            </div>
+
+            <!-- Create Lesson Card -->
+            <div class="bg-white rounded-2xl shadow-md p-5 form-card">
+                <h3 class="text-xl font-bold text-sky-700 mb-4">🎥 Create Lesson</h3>
+                <form id="createLessonForm">
+                    <select id="lessonClassId" class="w-full border rounded-lg p-2 mb-3" required><option value="">Select Class</option></select>
+                    <select id="lessonSubjectId" class="w-full border rounded-lg p-2 mb-3" required disabled><option value="">First select class</option></select>
+                    <select id="lessonChapterId" class="w-full border rounded-lg p-2 mb-3" required disabled><option value="">First select subject</option></select>
+                    <input type="text" id="lessonName" placeholder="Lesson Name" class="w-full border rounded-lg p-2 mb-3" required>
+                    <textarea id="lessonDesc" placeholder="Description (optional)" class="w-full border rounded-lg p-2 mb-3" rows="2"></textarea>
+                    <input type="number" id="lessonOrder" placeholder="Lesson Order (positive integer)" class="w-full border rounded-lg p-2 mb-3" required>
+                    <input type="url" id="pdfUrl" placeholder="PDF URL (optional)" class="w-full border rounded-lg p-2 mb-3">
+                    <input type="text" id="pdfText" placeholder="PDF Link Text (optional)" class="w-full border rounded-lg p-2 mb-3">
+                    <input type="url" id="videoUrl" placeholder="Video URL (optional)" class="w-full border rounded-lg p-2 mb-3">
+                    
+                    <!-- Image uploads with preview -->
+                    <div class="grid grid-cols-2 gap-3 mb-3">
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Thumbnail</label>
+                            <input type="file" id="thumbnailInput" accept="image/*" class="text-sm">
+                            <img id="thumbnailPreview" class="mt-1 w-20 h-20 object-cover rounded hidden">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Lesson Image</label>
+                            <input type="file" id="imageInputLesson" accept="image/*" class="text-sm">
+                            <img id="imagePreview" class="mt-1 w-20 h-20 object-cover rounded hidden">
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full bg-sky-600 hover:bg-sky-700 text-white font-semibold py-2 rounded-lg transition">Proceed</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="customToast" class="fixed bottom-6 left-1/2 transform -translate-x-1/2 md:left-auto md:right-6 md:translate-x-0 z-50 toast-notification bg-gradient-to-r from-red-600 to-red-700 text-white px-6 py-3 rounded-xl shadow-2xl flex items-center gap-3 font-semibold text-base">
+        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <span id="toastMessage">Message</span>
+    </div>
+
+    <script>
+        // ======================== CONFIG ========================
+        const API_BASE = "https://dilshadalmm-yosv.onrender.com";
+        let currentIdToken = null;
+        let currentUserData = null;
+
+        // Helper: show toast
+        function showToast(message, isError = true) {
+            const toast = document.getElementById('customToast');
+            const msgSpan = document.getElementById('toastMessage');
+            msgSpan.innerText = message;
+            if (isError) {
+                toast.classList.remove('bg-gradient-to-r', 'from-green-600', 'to-green-700');
+                toast.classList.add('bg-gradient-to-r', 'from-red-600', 'to-red-700');
+            } else {
+                toast.classList.remove('bg-gradient-to-r', 'from-red-600', 'to-red-700');
+                toast.classList.add('bg-gradient-to-r', 'from-green-600', 'to-green-700');
+            }
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        function setButtonLoading(btn, isLoading, originalText = null) {
+            if (isLoading) {
+                btn.disabled = true;
+                btn.classList.add('btn-loading');
+                if (!originalText) originalText = btn.innerText;
+                btn.setAttribute('data-original', originalText);
+                btn.innerHTML = `${originalText} <span class="loader"></span>`;
+            } else {
+                btn.disabled = false;
+                btn.classList.remove('btn-loading');
+                const orig = btn.getAttribute('data-original');
+                if (orig) btn.innerText = orig;
+            }
+        }
+
+        // ======================== AUTH SYNC & PROFILE FETCH ========================
+        async function syncUserWithBackend(idToken, userName = null, profileImage = null) {
+            const formData = new FormData();
+            formData.append('idToken', idToken);
+            if (userName) formData.append('userName', userName);
+            if (profileImage) formData.append('profileImage', profileImage);
+            const res = await fetch(`${API_BASE}/api/auth/register`, { method: 'POST', body: formData });
+            if (!res.ok) throw new Error('Sync failed');
+            const data = await res.json();
+            if (!data.success) throw new Error(data.error);
+            return data.user;
+        }
+
+        async function fetchUserProfile(token) {
+            const res = await fetch(`${API_BASE}/user`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!res.ok) throw new Error('Failed to fetch profile');
+            const data = await res.json();
+            if (!data.success) throw new Error(data.error);
+            return data.user;
+        }
+
+        async function updateUIAfterLogin(token, userData) {
+            currentIdToken = token;
+            currentUserData = userData;
+            // Show profile section
+            document.getElementById('profileSection').classList.remove('hidden');
+            document.getElementById('formsContainer').classList.remove('hidden');
+            // Fill profile
+            document.getElementById('profileImage').src = userData.photoUrl || 'https://via.placeholder.com/80';
+            document.getElementById('profileName').innerText = userData.displayName || userData.email;
+            document.getElementById('profileEmail').innerText = userData.email;
+            document.getElementById('profileRole').innerText = userData.role;
+            document.getElementById('profileActive').innerText = userData.isActive ? 'Active' : 'Inactive';
+            document.getElementById('classLimit').innerText = userData.classLimit;
+            document.getElementById('permittedClasses').innerText = (userData.permittedClassIds || []).join(', ') || 'None';
+            document.getElementById('subjectLimits').innerText = JSON.stringify(userData.subjectLimit || {});
+            document.getElementById('chapterLimits').innerText = JSON.stringify(userData.chapterLimit || {});
+            
+            // Populate class dropdowns for all forms
+            const classIds = userData.permittedClassIds || [];
+            const classSelects = ['subjectClassId', 'chapterClassId', 'lessonClassId'];
+            classSelects.forEach(id => {
+                const select = document.getElementById(id);
+                select.innerHTML = '<option value="">Select Class</option>';
+                classIds.forEach(cid => {
+                    select.innerHTML += `<option value="${cid}">${cid}</option>`;
+                });
+            });
+        }
+
+        // Fetch subjects for a given class (helper)
+        async function fetchSubjectsForClass(classId, token) {
+            const res = await fetch(`${API_BASE}/subjects?classId=${classId}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!res.ok) return [];
+            const data = await res.json();
+            return data.success ? data.subjects : [];
+        }
+
+        // Fetch chapters for class+subject
+        async function fetchChaptersForSubject(classId, subjectId, token) {
+            const res = await fetch(`${API_BASE}/chapters?classId=${classId}&subjectId=${subjectId}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!res.ok) return [];
+            const data = await res.json();
+            return data.success ? data.chapters : [];
+        }
+
+        // Upload image to backend (for thumbnail / lesson image)
+        async function uploadImage(file, type) { // type = 'thumbnail' or 'image'
+            const formData = new FormData();
+            formData.append('image', file);
+            const res = await fetch(`${API_BASE}/upload/${type}`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${currentIdToken}` },
+                body: formData
+            });
+            if (!res.ok) throw new Error('Upload failed');
+            const data = await res.json();
+            return data.url;
+        }
+
+        // ======================== FORM HANDLERS ========================
+        // Create Class
+        document.getElementById('createClassForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('className').value.trim();
+            const description = document.getElementById('classDesc').value.trim() || undefined;
+            const btn = e.target.querySelector('button');
+            setButtonLoading(btn, true);
+            try {
+                const res = await fetch(`${API_BASE}/classes`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${currentIdToken}` },
+                    body: JSON.stringify({ name, description })
+                });
+                const data = await res.json();
+                if (!data.success) throw new Error(data.error);
+                showToast(`Class "${name}" created! Remaining limit: ${data.remainingClassLimit}`, false);
+                // Refresh user profile
+                const newUser = await fetchUserProfile(currentIdToken);
+                await updateUIAfterLogin(currentIdToken, newUser);
+                document.getElementById('createClassForm').reset();
+            } catch (err) { showToast(err.message); }
+            finally { setButtonLoading(btn, false); }
+        });
+
+        // Create Subject
+        document.getElementById('createSubjectForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const classId = document.getElementById('subjectClassId').value;
+            const name = document.getElementById('subjectName').value.trim();
+            const description = document.getElementById('subjectDesc').value.trim() || undefined;
+            const btn = e.target.querySelector('button');
+            setButtonLoading(btn, true);
+            try {
+                const res = await fetch(`${API_BASE}/subjects`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${currentIdToken}` },
+                    body: JSON.stringify({ classId, name, description })
+                });
+                const data = await res.json();
+                if (!data.success) throw new Error(data.error);
+                showToast(`Subject "${name}" created! Remaining limit: ${data.remainingSubjectLimit}`, false);
+                // Refresh profile
+                const newUser = await fetchUserProfile(currentIdToken);
+                await updateUIAfterLogin(currentIdToken, newUser);
+                document.getElementById('createSubjectForm').reset();
+            } catch (err) { showToast(err.message); }
+            finally { setButtonLoading(btn, false); }
+        });
+
+        // Create Chapter
+        document.getElementById('createChapterForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const classId = document.getElementById('chapterClassId').value;
+            const subjectId = document.getElementById('chapterSubjectId').value;
+            const name = document.getElementById('chapterName').value.trim();
+            const description = document.getElementById('chapterDesc').value.trim() || undefined;
+            const btn = e.target.querySelector('button');
+            setButtonLoading(btn, true);
+            try {
+                const res = await fetch(`${API_BASE}/chapters`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${currentIdToken}` },
+                    body: JSON.stringify({ classId, subjectId, name, description })
+                });
+                const data = await res.json();
+                if (!data.success) throw new Error(data.error);
+                showToast(`Chapter "${name}" created! Remaining limit: ${data.remainingChapterLimit}`, false);
+                const newUser = await fetchUserProfile(currentIdToken);
+                await updateUIAfterLogin(currentIdToken, newUser);
+                document.getElementById('createChapterForm').reset();
+                document.getElementById('chapterSubjectId').innerHTML = '<option value="">First select class</option>';
+                document.getElementById('chapterSubjectId').disabled = true;
+            } catch (err) { showToast(err.message); }
+            finally { setButtonLoading(btn, false); }
+        });
+
+        // Create Lesson (with image uploads)
+        document.getElementById('createLessonForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const classId = document.getElementById('lessonClassId').value;
+            const subjectId = document.getElementById('lessonSubjectId').value;
+            const chapterId = document.getElementById('lessonChapterId').value;
+            const lessonName = document.getElementById('lessonName').value.trim();
+            const lessonDescription = document.getElementById('lessonDesc').value.trim() || undefined;
+            const lessonOrder = parseInt(document.getElementById('lessonOrder').value);
+            const pdfLinkAddress = document.getElementById('pdfUrl').value.trim() || undefined;
+            const pdfLinkText = document.getElementById('pdfText').value.trim() || undefined;
+            const videoUrl = document.getElementById('videoUrl').value.trim() || undefined;
+            
+            const thumbnailFile = document.getElementById('thumbnailInput').files[0];
+            const imageFile = document.getElementById('imageInputLesson').files[0];
+            const btn = e.target.querySelector('button');
+            setButtonLoading(btn, true);
+            try {
+                // Upload images first
+                let thumbnailUrl = null, imageUrl = null;
+                if (thumbnailFile) thumbnailUrl = await uploadImage(thumbnailFile, 'thumbnail');
+                if (imageFile) imageUrl = await uploadImage(imageFile, 'image');
+                
+                const payload = { classId, subjectId, chapterId, lessonOrder, videoUrl, thumbnailUrl, imageUrl, lessonName, lessonDescription, pdfLinkAddress, pdfLinkText };
+                const res = await fetch(`${API_BASE}/lessons`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${currentIdToken}` },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (!data.success) throw new Error(data.error);
+                showToast(`Lesson "${lessonName}" created!`, false);
+                document.getElementById('createLessonForm').reset();
+                document.getElementById('thumbnailPreview').classList.add('hidden');
+                document.getElementById('imagePreview').classList.add('hidden');
+                // Reset dependent selects
+                document.getElementById('lessonSubjectId').innerHTML = '<option value="">First select class</option>';
+                document.getElementById('lessonSubjectId').disabled = true;
+                document.getElementById('lessonChapterId').innerHTML = '<option value="">First select subject</option>';
+                document.getElementById('lessonChapterId').disabled = true;
+            } catch (err) { showToast(err.message); }
+            finally { setButtonLoading(btn, false); }
+        });
+
+        // ======================== DEPENDENT DROPDOWNS ========================
+        // For Chapter: load subjects when class changes
+        document.getElementById('chapterClassId').addEventListener('change', async (e) => {
+            const classId = e.target.value;
+            const subjectSelect = document.getElementById('chapterSubjectId');
+            if (!classId) {
+                subjectSelect.disabled = true;
+                subjectSelect.innerHTML = '<option value="">First select class</option>';
+                return;
+            }
+            subjectSelect.disabled = true;
+            subjectSelect.innerHTML = '<option value="">Loading...</option>';
+            try {
+                const subjects = await fetchSubjectsForClass(classId, currentIdToken);
+                subjectSelect.innerHTML = '<option value="">Select Subject</option>';
+                subjects.forEach(sub => {
+                    subjectSelect.innerHTML += `<option value="${sub.subjectId}">${sub.name}</option>`;
+                });
+                subjectSelect.disabled = false;
+            } catch (err) { subjectSelect.innerHTML = '<option value="">Error loading</option>'; }
+        });
+
+        // For Lesson: load subjects on class change
+        document.getElementById('lessonClassId').addEventListener('change', async (e) => {
+            const classId = e.target.value;
+            const subjectSelect = document.getElementById('lessonSubjectId');
+            const chapterSelect = document.getElementById('lessonChapterId');
+            if (!classId) {
+                subjectSelect.disabled = true;
+                subjectSelect.innerHTML = '<option value="">First select class</option>';
+                chapterSelect.disabled = true;
+                chapterSelect.innerHTML = '<option value="">First select subject</option>';
+                return;
+            }
+            subjectSelect.disabled = true;
+            subjectSelect.innerHTML = '<option value="">Loading...</option>';
+            try {
+                const subjects = await fetchSubjectsForClass(classId, currentIdToken);
+                subjectSelect.innerHTML = '<option value="">Select Subject</option>';
+                subjects.forEach(sub => {
+                    subjectSelect.innerHTML += `<option value="${sub.subjectId}">${sub.name}</option>`;
+                });
+                subjectSelect.disabled = false;
+                chapterSelect.disabled = true;
+                chapterSelect.innerHTML = '<option value="">First select subject</option>';
+            } catch (err) { subjectSelect.innerHTML = '<option value="">Error</option>'; }
+        });
+
+        // For Lesson: load chapters when subject changes
+        document.getElementById('lessonSubjectId').addEventListener('change', async (e) => {
+            const classId = document.getElementById('lessonClassId').value;
+            const subjectId = e.target.value;
+            const chapterSelect = document.getElementById('lessonChapterId');
+            if (!classId || !subjectId) {
+                chapterSelect.disabled = true;
+                chapterSelect.innerHTML = '<option value="">Select class & subject first</option>';
+                return;
+            }
+            chapterSelect.disabled = true;
+            chapterSelect.innerHTML = '<option value="">Loading...</option>';
+            try {
+                const chapters = await fetchChaptersForSubject(classId, subjectId, currentIdToken);
+                chapterSelect.innerHTML = '<option value="">Select Chapter</option>';
+                chapters.forEach(ch => {
+                    chapterSelect.innerHTML += `<option value="${ch.chapterId}">${ch.name}</option>`;
+                });
+                chapterSelect.disabled = false;
+            } catch (err) { chapterSelect.innerHTML = '<option value="">Error</option>'; }
+        });
+
+        // Image previews
+        document.getElementById('thumbnailInput').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    const img = document.getElementById('thumbnailPreview');
+                    img.src = ev.target.result;
+                    img.classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+        document.getElementById('imageInputLesson').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    const img = document.getElementById('imagePreview');
+                    img.src = ev.target.result;
+                    img.classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // ======================== LOGIN / REGISTER LOGIC ========================
+        // Hide dashboard initially
+        document.getElementById('profileSection').classList.add('hidden');
+        document.getElementById('formsContainer').classList.add('hidden');
+        
+        // Show login/register modal overlay? For simplicity we keep original login/register UI.
+        // But we need to embed it because the current page replaced it. Let's re-add the auth forms at the top.
+        // However to avoid clutter, we will inject them dynamically if user not logged in.
+        // But the original file had login/register sections. I'll restore them as a card.
+        const authContainer = document.createElement('div');
+        authContainer.id = 'authContainer';
+        authContainer.innerHTML = `
+            <div class="bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col md:flex-row max-w-5xl mx-auto mt-8">
+                <section class="w-full md:w-1/2 p-8 border-b md:border-b-0 md:border-r">
+                    <h2 class="text-2xl font-semibold mb-6 flex items-center"><span class="w-2 h-8 bg-indigo-500 rounded-full mr-3"></span>Login</h2>
+                    <form id="loginForm" class="space-y-4">
+                        <input type="email" id="loginEmail" placeholder="Email" class="w-full p-3 border rounded-lg" required>
+                        <input type="password" id="loginPassword" placeholder="Password" class="w-full p-3 border rounded-lg" required>
+                        <button type="submit" id="loginBtn" class="w-full bg-indigo-600 text-white py-3 rounded-lg">Sign In</button>
+                    </form>
+                </section>
+                <section class="w-full md:w-1/2 p-8 bg-gray-50">
+                    <h2 class="text-2xl font-semibold mb-6 flex items-center"><span class="w-2 h-8 bg-emerald-500 rounded-full mr-3"></span>Register</h2>
+                    <form id="registerForm" class="space-y-4">
+                        <input type="text" id="regName" placeholder="Full Name" class="w-full p-3 border rounded-lg" required>
+                        <input type="email" id="regEmail" placeholder="Email" class="w-full p-3 border rounded-lg" required>
+                        <input type="password" id="regPassword" placeholder="Password" class="w-full p-3 border rounded-lg" required>
+                        <input type="password" id="regConfirmPassword" placeholder="Confirm Password" class="w-full p-3 border rounded-lg" required>
+                        <div><label class="block text-sm">Profile Image</label><input type="file" id="regImage" accept="image/*"></div>
+                        <button type="submit" id="registerBtn" class="w-full bg-emerald-600 text-white py-3 rounded-lg">Create Account</button>
+                    </form>
+                </section>
+            </div>
+        `;
+        document.querySelector('.max-w-7xl').prepend(authContainer);
+
+        // Wire login/register handlers
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const btn = document.getElementById('loginBtn');
+            setButtonLoading(btn, true);
+            try {
+                const userCred = await window.signInWithEmailAndPassword(window.auth, email, password);
+                if (!userCred.user.emailVerified) throw new Error('Please verify email first');
+                const token = await userCred.user.getIdToken();
+                const userData = await syncUserWithBackend(token);
+                await updateUIAfterLogin(token, userData);
+                authContainer.remove(); // remove login form
+                showToast('Login successful!', false);
+            } catch (err) { showToast(err.message); }
+            finally { setButtonLoading(btn, false); }
+        });
+
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('regName').value;
+            const email = document.getElementById('regEmail').value;
+            const pwd = document.getElementById('regPassword').value;
+            const confirm = document.getElementById('regConfirmPassword').value;
+            const imageFile = document.getElementById('regImage').files[0];
+            if (pwd !== confirm) return showToast('Passwords mismatch');
+            const btn = document.getElementById('registerBtn');
+            setButtonLoading(btn, true);
+            try {
+                const userCred = await window.createUserWithEmailAndPassword(window.auth, email, pwd);
+                await window.updateProfile(userCred.user, { displayName: name });
+                await window.sendEmailVerification(userCred.user);
+                const token = await userCred.user.getIdToken();
+                await syncUserWithBackend(token, name, imageFile);
+                showToast('Account created! Verify email then login.', false);
+                document.getElementById('registerForm').reset();
+            } catch (err) { showToast(err.message); }
+            finally { setButtonLoading(btn, false); }
+        });
+
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            await window.signOut(window.auth);
+            location.reload();
+        });
+
+        // Check if already logged in
+        window.auth.onAuthStateChanged(async (user) => {
+            if (user && user.emailVerified) {
+                const token = await user.getIdToken();
+                try {
+                    const userData = await fetchUserProfile(token);
+                    await updateUIAfterLogin(token, userData);
+                    authContainer.remove();
+                } catch (err) { console.error(err); }
+            }
+        });
+    </script>
+</body>
+</html>
