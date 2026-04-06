@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Ultimate Solution | MECEE Prep</title>
+    <!-- Montserrat and Creepster Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Creepster&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Hide scrollbar technique - only main scrolls, body static */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden !important;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #ffffff;
+            color: #1a202c;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            touch-action: pan-y pinch-zoom;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        main {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+            scroll-behavior: auto;
+        }
+        main::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* Smart sticky header */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 50;
+            background-color: white;
+            border-bottom: 1px solid #f0f0f0;
+            transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            transform: translateY(0);
+            will-change: transform;
+        }
+        header.header-hidden {
+            transform: translateY(-100%);
+        }
+        .header-shadow {
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .brand-font {
+            font-family: 'Creepster', system-ui;
+        }
+        .link-decoration {
+            color: #3182ce;
+            text-decoration: underline;
+            text-decoration-thickness: 1px;
+            text-underline-offset: 4px;
+        }
+        .link-decoration:hover {
+            color: #2c5282;
+        }
+        .title-underline {
+            text-decoration: underline;
+            text-decoration-thickness: 2px;
+            text-underline-offset: 6px;
+        }
+        .aspect-16-9 {
+            aspect-ratio: 16 / 9;
+            width: 100%;
+        }
+        .clickable-title {
+            cursor: pointer;
+            transition: opacity 0.2s ease;
+        }
+        .clickable-title:hover {
+            opacity: 0.85;
+        }
+        .toast-notification {
+            transition: opacity 0.25s ease-in-out, visibility 0.25s;
+            opacity: 0;
+            visibility: hidden;
+            backdrop-filter: blur(4px);
+        }
+        .toast-notification.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        .loader {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 3rem 1rem;
+        }
+        .loader-dot {
+            width: 12px;
+            height: 12px;
+            background-color: #3182ce;
+            border-radius: 50%;
+            margin: 0 6px;
+            animation: pulse 1.2s infinite ease-in-out;
+        }
+        .loader-dot:nth-child(2) { animation-delay: 0.2s; }
+        .loader-dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes pulse {
+            0%, 100% { opacity: 0.3; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+        
+        /* Custom dropdown styles */
+        .custom-select-wrapper {
+            position: relative;
+            width: 100%;
+            margin-bottom: 1.5rem;
+        }
+        .custom-select-trigger {
+            width: 100%;
+            padding: 12px 18px;
+            border: 1px solid #cbd5e1;
+            border-radius: 9999px;
+            font-size: 0.9rem;
+            outline: none;
+            background-color: #fff;
+            font-family: 'Montserrat', sans-serif;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .custom-select-trigger span:first-child {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            flex: 1;
+        }
+        .custom-select-trigger::after {
+            content: "▼";
+            font-size: 0.7rem;
+            color: #64748b;
+            transition: transform 0.2s;
+            margin-left: 12px;
+            flex-shrink: 0;
+        }
+        .custom-select-trigger.open::after {
+            transform: rotate(180deg);
+        }
+        .custom-select-dropdown {
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0;
+            width: 100%;
+            background-color: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+            z-index: 50;
+            display: none;
+            max-height: 280px;
+            overflow-y: auto;
+        }
+        .custom-select-dropdown.show {
+            display: block;
+        }
+        .custom-select-option {
+            padding: 12px 18px;
+            font-size: 0.9rem;
+            font-family: 'Montserrat', sans-serif;
+            cursor: pointer;
+            transition: background 0.1s;
+            border-bottom: 1px solid #e2e8f0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .custom-select-option:last-child {
+            border-bottom: none;
+        }
+        .custom-select-option:hover {
+            background-color: #f1f5f9;
+        }
+        .custom-select-option.selected {
+            background-color: #eef2ff;
+            font-weight: 500;
+        }
+        .filter-blue-bg {
+            background-color: #dbeafe;
+            border-radius: 20px;
+            padding: 20px 20px;
+            margin-bottom: 32px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .form-label {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 12px;
+            margin-top: 0;
+            white-space: nowrap;
+            width: 100%;
+        }
+        .form-label::before,
+        .form-label::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background-color: #94a3b8;
+        }
+        .form-label::before {
+            margin-right: 8px;
+        }
+        .form-label::after {
+            margin-left: 8px;
+        }
+        
+        /* Video container styles - border radius forced to 0px per requirement */
+        .video-container {
+            position: relative;
+            background: #000;
+            border-radius: 0px !important;
+            overflow: hidden;
+            cursor: pointer;
+            aspect-ratio: 16 / 9;
+        }
+        .video-thumbnail {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: opacity 0.2s;
+        }
+        .play-button-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90px;
+            height: 90px;
+            transition: transform 0.2s ease, opacity 0.2s;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+            pointer-events: none;
+        }
+        .video-container:hover .play-button-overlay {
+            transform: translate(-50%, -50%) scale(1.05);
+        }
+        .video-iframe-wrapper {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+        .video-iframe-wrapper iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        /* Two column grid with horizontal divider between cards */
+        #dynamic-sections-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+        #dynamic-sections-container > section {
+            margin-bottom: 0;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 2rem;
+            margin-bottom: 2rem;
+        }
+        #dynamic-sections-container > section:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+            margin-bottom: 0;
+        }
+        @media (min-width: 768px) {
+            #dynamic-sections-container {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 2rem;
+            }
+            #dynamic-sections-container > section {
+                border-bottom: none;
+                padding-bottom: 0;
+                margin-bottom: 0;
+                border-right: 1px solid #e2e8f0;
+                padding-right: 2rem;
+            }
+            #dynamic-sections-container > section:nth-child(even) {
+                border-right: none;
+                padding-right: 0;
+            }
+            #dynamic-sections-container > section:nth-last-child(2):not(:last-child) {
+                border-bottom: 1px solid #e2e8f0;
+                padding-bottom: 2rem;
+                margin-bottom: 0;
+            }
+            #dynamic-sections-container > section:last-child,
+            #dynamic-sections-container > section:nth-last-child(2):last-child {
+                border-bottom: none;
+                padding-bottom: 0;
+            }
+        }
+
+        /* Full-page auth loader overlay - stays until full render or redirect */
+        #auth-loader-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #ffffff;
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 1.5rem;
+            transition: opacity 0.3s ease;
+        }
+        .auth-spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid #e2e8f0;
+            border-top-color: #3182ce;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .auth-loader-text {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            color: #1e293b;
+            letter-spacing: 0.5px;
+        }
+        
+        /* New spacing: exactly 20px from header bottom to filter form top */
+        .main-content-wrapper {
+            padding-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="auth-loader-overlay">
+        <div class="auth-spinner"></div>
+        <div class="auth-loader-text">Verifying access...</div>
+    </div>
+
+    <header class="header-shadow bg-white border-b border-gray-100">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+            <div class="bg-black px-4 py-2 rounded-md">
+                <h1 id="brandHeaderText" class="brand-font text-white text-2xl tracking-wider whitespace-nowrap">
+                    ULTIMATE SOLUTION
+                </h1>
+            </div>
+            <div class="flex items-center space-x-3">
+                <div class="p-2 text-blue-500 bg-blue-50 rounded-md cursor-pointer hover:bg-blue-100 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </div>
+                <div class="p-2 text-white bg-blue-500 rounded-md cursor-pointer hover:bg-blue-600 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="max-w-3xl md:max-w-6xl mx-auto px-4 md:px-6 main-content-wrapper">
+            <div id="filterFormContainer" class="filter-blue-bg" style="display: none;"></div>
+            <div id="dynamic-sections-container">
+                <div class="loader">
+                    <div class="loader-dot"></div>
+                    <div class="loader-dot"></div>
+                    <div class="loader-dot"></div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="py-12 bg-gray-50 mt-16 border-t border-gray-200">
+            <div class="max-w-6xl mx-auto px-4 text-center">
+                <span class="text-gray-500 font-bold tracking-widest text-sm title-underline">
+                    ©2026 ULTIMATE SOLUTION
+                </span>
+            </div>
+        </footer>
+    </main>
+
+    <div id="customToast" class="fixed bottom-6 left-1/2 transform -translate-x-1/2 md:left-auto md:right-6 md:translate-x-0 z-50 toast-notification bg-gradient-to-r from-red-600 to-red-700 text-white px-6 py-3 rounded-xl shadow-2xl flex items-center gap-3 font-semibold text-base border border-red-400">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span id="toastMessage">Coming Soon !!</span>
+    </div>
+
+    <!-- FIREBASE MODULE SCRIPT - AUTH GUARD & TOKEN PROVIDER -->
+    <script type="module">
+        const firebaseConfig = {
+            apiKey: "AIzaSyC6NRjkwiazA-aYF4okvnLW4qpCyMg8O9E",
+            authDomain: "fir-f3d53.firebaseapp.com",
+            databaseURL: "https://fir-f3d53-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "fir-f3d53",
+            storageBucket: "fir-f3d53.firebasestorage.app",
+            messagingSenderId: "683707045028",
+            appId: "1:683707045028:web:93990fa0de8767dda90231"
+        };
+
+        try {
+            const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
+            const { getAuth, onAuthStateChanged } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js');
+            
+            const app = initializeApp(firebaseConfig);
+            const auth = getAuth(app);
+            
+            window.firebaseAuth = auth;
+            window.getFirebaseToken = async () => {
+                const user = auth.currentUser;
+                if (!user) throw new Error('No authenticated user');
+                return await user.getIdToken();
+            };
+            
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    if (typeof window.startAuthenticatedApp === 'function') {
+                        try {
+                            await window.startAuthenticatedApp();
+                            const overlay = document.getElementById('auth-loader-overlay');
+                            if (overlay) {
+                                overlay.style.opacity = '0';
+                                setTimeout(() => {
+                                    if (overlay && overlay.parentNode) overlay.remove();
+                                    const mainEl = document.querySelector('main');
+                                    if (mainEl) mainEl.scrollTop = 0;
+                                }, 300);
+                            }
+                        } catch (err) {
+                            console.error('App initialization error:', err);
+                            const overlay = document.getElementById('auth-loader-overlay');
+                            if (overlay) {
+                                overlay.style.opacity = '0';
+                                setTimeout(() => overlay.remove(), 300);
+                            }
+                            const dynamicContainer = document.getElementById('dynamic-sections-container');
+                            if (dynamicContainer) dynamicContainer.innerHTML = '<div class="text-center py-12 text-red-600">Failed to load content. Please refresh the page.</div>';
+                        }
+                    } else {
+                        const checkInterval = setInterval(async () => {
+                            if (typeof window.startAuthenticatedApp === 'function') {
+                                clearInterval(checkInterval);
+                                try {
+                                    await window.startAuthenticatedApp();
+                                    const overlay = document.getElementById('auth-loader-overlay');
+                                    if (overlay) {
+                                        overlay.style.opacity = '0';
+                                        setTimeout(() => overlay.remove(), 300);
+                                    }
+                                } catch (err) {
+                                    console.error(err);
+                                    const overlay = document.getElementById('auth-loader-overlay');
+                                    if (overlay) overlay.remove();
+                                }
+                            }
+                        }, 50);
+                    }
+                } else {
+                    window.location.replace('https://nepalpathshala.github.io/ultimateSolution/auth.html');
+                }
+            });
+        } catch (err) {
+            console.error("Firebase initialization error:", err);
+            window.location.replace('https://nepalpathshala.github.io/ultimateSolution/auth.html');
+        }
+    </script>
+
+    <script>
+        (function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const courseCode = urlParams.get('courseCode');
+            
+            if (!courseCode || courseCode.trim() === "") {
+                window.location.replace('https://nepalpathshala.github.io/ultimateSolution/auth.html');
+                throw new Error('Missing courseCode parameter. Redirecting to login.');
+            }
+            
+            const API_BASE = "https://dilshadalmm-yosv.onrender.com";
+            const SUBJECTS_ENDPOINT = `${API_BASE}/api/subjects`;
+            const CHAPTERS_ENDPOINT = `${API_BASE}/api/chapters`;
+            const LESSONS_ENDPOINT = `${API_BASE}/api/lessons`;
+            const RECENT_LESSONS_ENDPOINT = `${API_BASE}/api/recent-lessons`;
+            const LOGIN_PAGE_URL = "https://nepalpathshala.github.io/ultimateSolution/auth.html";
+            
+            let currentSubjectId = null;
+            let currentChapterId = null;
+            let currentSubjectName = "";
+            let currentChapterName = "";
+            let allLessonsData = [];
+            
+            let dynamicContainer = document.getElementById('dynamic-sections-container');
+            let filterContainer = document.getElementById('filterFormContainer');
+            
+            let youtubeAPILoaded = false;
+            let youtubeAPILoadPromise = null;
+            const playerByContainer = new WeakMap();
+            let intersectionObserver = null;
+            
+            function extractYouTubeID(url) {
+                if (!url) return null;
+                const patterns = [
+                    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
+                    /youtube\.com\/shorts\/([^&\n?#]+)/
+                ];
+                for (let pattern of patterns) {
+                    const match = url.match(pattern);
+                    if (match && match[1]) return match[1];
+                }
+                return null;
+            }
+            
+            function getVideoThumbnail(videoUrl, providedThumbnail) {
+                if (providedThumbnail && providedThumbnail.trim() !== "") return providedThumbnail;
+                const videoId = extractYouTubeID(videoUrl);
+                if (videoId) return `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+                return "https://images.unsplash.com/photo-1581091226033-d5c48150dbaa?q=80&w=1200&auto=format&fit=crop";
+            }
+            
+            function loadYouTubeAPI() {
+                if (youtubeAPILoaded) return Promise.resolve();
+                if (youtubeAPILoadPromise) return youtubeAPILoadPromise;
+                youtubeAPILoadPromise = new Promise((resolve, reject) => {
+                    if (window.YT && window.YT.Player) {
+                        youtubeAPILoaded = true;
+                        resolve();
+                        return;
+                    }
+                    const tag = document.createElement('script');
+                    tag.src = "https://www.youtube.com/iframe_api";
+                    const firstScriptTag = document.getElementsByTagName('script')[0];
+                    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+                    window.onYouTubeIframeAPIReady = () => {
+                        youtubeAPILoaded = true;
+                        resolve();
+                    };
+                    tag.onerror = reject;
+                });
+                return youtubeAPILoadPromise;
+            }
+            
+            function initIntersectionObserver() {
+                if (intersectionObserver) return;
+                intersectionObserver = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        const container = entry.target;
+                        const player = playerByContainer.get(container);
+                        if (player && typeof player.pauseVideo === 'function' && !entry.isIntersecting) {
+                            player.pauseVideo();
+                        }
+                    });
+                }, { threshold: 0.2 });
+            }
+            
+            function observeVideoContainer(containerEl) {
+                if (!intersectionObserver) initIntersectionObserver();
+                intersectionObserver.observe(containerEl);
+            }
+            
+            async function initYouTubePlayer(videoContainer, videoUrl, uniqueId) {
+                if (!videoUrl) return;
+                const videoId = extractYouTubeID(videoUrl);
+                if (!videoId) {
+                    showToast("Invalid video URL");
+                    return;
+                }
+                if (videoContainer.dataset.playerInitialized === "true") return;
+                videoContainer.dataset.playerInitialized = "true";
+                await loadYouTubeAPI();
+                videoContainer.innerHTML = '';
+                const wrapper = document.createElement('div');
+                wrapper.className = 'video-iframe-wrapper';
+                wrapper.id = `youtube-player-${uniqueId}`;
+                videoContainer.appendChild(wrapper);
+                const player = new YT.Player(wrapper.id, {
+                    videoId: videoId,
+                    playerVars: { autoplay: 1, modestbranding: 1, rel: 0, controls: 1 },
+                    events: {
+                        onReady: (event) => {
+                            playerByContainer.set(videoContainer, player);
+                            observeVideoContainer(videoContainer);
+                        }
+                    }
+                });
+                playerByContainer.set(videoContainer, player);
+            }
+            
+            function showToast(message = "Coming Soon !!") {
+                const toastEl = document.getElementById('customToast');
+                const messageSpan = document.getElementById('toastMessage');
+                if (!toastEl) return;
+                if (messageSpan) messageSpan.innerText = message;
+                toastEl.classList.remove('show');
+                void toastEl.offsetWidth;
+                toastEl.classList.add('show');
+                setTimeout(() => toastEl.classList.remove('show'), 2300);
+            }
+            
+            async function fetchWithAuth(url, options = {}) {
+                if (!window.getFirebaseToken) throw new Error('Firebase token not available');
+                const token = await window.getFirebaseToken();
+                const headers = {
+                    'Authorization': `Bearer ${token}`,
+                    ...(options.headers || {})
+                };
+                const response = await fetch(url, { ...options, headers });
+                
+                if (response.status === 403 || response.status === 401) {
+                    console.warn(`${response.status} Forbidden/Unauthorized from API, redirecting to login page`);
+                    window.location.replace(LOGIN_PAGE_URL);
+                    throw new Error('Access denied. Redirecting to login.');
+                }
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                }
+                return response.json();
+            }
+            
+            async function fetchRecentLessons() {
+                const url = `${RECENT_LESSONS_ENDPOINT}?courseCode=${encodeURIComponent(courseCode)}`;
+                const result = await fetchWithAuth(url);
+                if (!result.success) throw new Error(result.error || 'Failed to fetch recent lessons');
+                return result.lessons || [];
+            }
+            
+            async function fetchSubjects() {
+                const url = `${SUBJECTS_ENDPOINT}?courseCode=${encodeURIComponent(courseCode)}`;
+                const result = await fetchWithAuth(url);
+                if (!result.success) throw new Error(result.error || 'Failed to fetch subjects');
+                return result.subjects || [];
+            }
+            
+            async function fetchChapters(subjectId) {
+                const url = `${CHAPTERS_ENDPOINT}?courseCode=${encodeURIComponent(courseCode)}&subjectId=${encodeURIComponent(subjectId)}`;
+                const result = await fetchWithAuth(url);
+                if (!result.success) throw new Error(result.error || 'Failed to fetch chapters');
+                return result.chapters || [];
+            }
+            
+            async function fetchLessons(subjectId, chapterId) {
+                const url = `${LESSONS_ENDPOINT}?courseCode=${encodeURIComponent(courseCode)}&subjectId=${encodeURIComponent(subjectId)}&chapterId=${encodeURIComponent(chapterId)}`;
+                const result = await fetchWithAuth(url);
+                if (!result.success) throw new Error(result.error || 'Failed to fetch lessons');
+                return result.lessons || [];
+            }
+            
+            function renderLessons(lessonsArray = null) {
+                const data = lessonsArray !== null ? lessonsArray : allLessonsData;
+                if (!dynamicContainer) return;
+                if (!data.length) {
+                    dynamicContainer.innerHTML = '<div class="text-center py-12 text-gray-500">No lessons available.</div>';
+                    return;
+                }
+                dynamicContainer.innerHTML = '';
+                data.forEach((lesson, idx) => {
+                    dynamicContainer.appendChild(createLessonElement(lesson, idx));
+                });
+            }
+            
+            function createLessonElement(lesson, idx) {
+                const { lessonName = "Lesson", lessonDescription = "", videoUrl = "", thumbnailUrl = "", linkText = "", linkAddress = "" } = lesson;
+                const section = document.createElement('section');
+                section.className = "";
+                
+                const titleEl = document.createElement('h2');
+                titleEl.textContent = lessonName;
+                titleEl.className = "text-3xl font-extrabold text-gray-900 mb-4 tracking-tight leading-tight uppercase title-underline";
+                // No click redirect - just static title
+                
+                const descEl = document.createElement('p');
+                descEl.textContent = lessonDescription || "Comprehensive lesson content.";
+                descEl.className = "text-lg text-gray-600 mb-3 font-normal opacity-90";
+                
+                // Download link: use linkText and linkAddress if available
+                const downloadLinkEl = document.createElement('a');
+                if (linkAddress && linkAddress.trim() !== "") {
+                    downloadLinkEl.textContent = linkText && linkText.trim() !== "" ? linkText : "Download Material";
+                    downloadLinkEl.href = linkAddress;
+                    downloadLinkEl.target = "_blank";
+                    downloadLinkEl.rel = "noopener noreferrer";
+                    downloadLinkEl.className = "link-decoration text-xl font-medium inline-block mb-6";
+                } else {
+                    downloadLinkEl.textContent = "Download Solutions";
+                    downloadLinkEl.href = "javascript:void(0)";
+                    downloadLinkEl.className = "link-decoration text-xl font-medium inline-block mb-6 download-link";
+                    downloadLinkEl.style.cursor = "pointer";
+                    downloadLinkEl.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); showToast("Coming Soon !!"); });
+                }
+                
+                const hasValidVideo = videoUrl && videoUrl.trim() !== "";
+                let mediaContainer;
+                if (hasValidVideo) {
+                    mediaContainer = document.createElement('div');
+                    mediaContainer.className = "video-container";
+                    const thumbUrl = getVideoThumbnail(videoUrl, thumbnailUrl);
+                    const thumbImg = document.createElement('img');
+                    thumbImg.src = thumbUrl;
+                    thumbImg.alt = lessonName;
+                    thumbImg.className = "video-thumbnail";
+                    thumbImg.loading = "lazy";
+                    thumbImg.onerror = function() { this.src = "https://images.unsplash.com/photo-1581091226033-d5c48150dbaa?q=80&w=1200&auto=format&fit=crop"; };
+                    mediaContainer.appendChild(thumbImg);
+                    const svgPlay = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+                    svgPlay.setAttribute("width", "90");
+                    svgPlay.setAttribute("height", "90");
+                    svgPlay.setAttribute("viewBox", "0 0 90 90");
+                    svgPlay.setAttribute("class", "play-button-overlay");
+                    svgPlay.innerHTML = '<path d="M85.3 24.5c-1-3.7-3.9-6.6-7.6-7.6C71 15 45 15 45 15s-26 0-32.7 1.9c-3.7 1-6.6 3.9-7.6 7.6C2.8 31.2 2.8 45 2.8 45s0 13.8 1.9 20.5c1 3.7 3.9 6.6 7.6 7.6C19 75 45 75 45 75s26 0 32.7-1.9c3.7-1 6.6-3.9 7.6-7.6 1.9-6.7 1.9-20.5 1.9-20.5s0-13.8-1.9-20.5z" fill="#3b82f6"/><path d="M36 58.5V31.5L59.5 45L36 58.5z" fill="white"/>';
+                    mediaContainer.appendChild(svgPlay);
+                    const uniqueVideoId = `vid_${Date.now()}_${idx}_${Math.random().toString(36).substr(2, 6)}`;
+                    mediaContainer.dataset.videoId = uniqueVideoId;
+                    mediaContainer.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        if (mediaContainer.dataset.playerInitialized === "true") return;
+                        initYouTubePlayer(mediaContainer, videoUrl, uniqueVideoId).catch(err => console.warn(err));
+                    });
+                } else {
+                    mediaContainer = document.createElement('div');
+                    mediaContainer.className = "aspect-16-9 bg-gray-100 rounded-lg overflow-hidden border border-gray-200 shadow-sm";
+                    const img = document.createElement('img');
+                    img.src = thumbnailUrl || "https://images.unsplash.com/photo-1505751172876-fa1923c5c528?q=80&w=1200&auto=format&fit=crop";
+                    img.alt = lessonName;
+                    img.className = "w-full h-full object-cover";
+                    img.loading = "lazy";
+                    img.onerror = function() { if (!this.src.includes('placeholder-medical')) this.src = "https://images.unsplash.com/photo-1581091226033-d5c48150dbaa?q=80&w=1200&auto=format&fit=crop"; };
+                    mediaContainer.appendChild(img);
+                    // No click redirect
+                }
+                
+                section.appendChild(titleEl);
+                section.appendChild(descEl);
+                section.appendChild(downloadLinkEl);
+                section.appendChild(mediaContainer);
+                return section;
+            }
+            
+            function createCustomSelect(options, selectedValue, placeholder, onSelect) {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'custom-select-wrapper';
+                const trigger = document.createElement('div');
+                trigger.className = 'custom-select-trigger';
+                const triggerSpan = document.createElement('span');
+                triggerSpan.textContent = placeholder;
+                trigger.appendChild(triggerSpan);
+                const dropdown = document.createElement('div');
+                dropdown.className = 'custom-select-dropdown';
+                
+                if (options.length === 0) {
+                    const disabledOpt = document.createElement('div');
+                    disabledOpt.className = 'custom-select-option disabled';
+                    disabledOpt.textContent = 'No options available';
+                    disabledOpt.style.cursor = 'default';
+                    disabledOpt.style.opacity = '0.6';
+                    dropdown.appendChild(disabledOpt);
+                } else {
+                    options.forEach(opt => {
+                        const optDiv = document.createElement('div');
+                        optDiv.className = 'custom-select-option';
+                        if (selectedValue === opt.value) optDiv.classList.add('selected');
+                        optDiv.textContent = opt.label;
+                        optDiv.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            triggerSpan.textContent = opt.label;
+                            dropdown.classList.remove('show');
+                            trigger.classList.remove('open');
+                            onSelect(opt.value, opt.label);
+                            dropdown.querySelectorAll('.custom-select-option').forEach(el => el.classList.remove('selected'));
+                            optDiv.classList.add('selected');
+                        });
+                        dropdown.appendChild(optDiv);
+                    });
+                }
+                
+                trigger.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    closeAllDropdowns();
+                    dropdown.classList.add('show');
+                    trigger.classList.add('open');
+                });
+                wrapper.appendChild(trigger);
+                wrapper.appendChild(dropdown);
+                return wrapper;
+            }
+            
+            function closeAllDropdowns() {
+                document.querySelectorAll('.custom-select-dropdown').forEach(dd => dd.classList.remove('show'));
+                document.querySelectorAll('.custom-select-trigger').forEach(tr => tr.classList.remove('open'));
+            }
+            
+            async function buildFilterUI() {
+                if (!filterContainer) return;
+                filterContainer.style.display = 'block';
+                filterContainer.innerHTML = '';
+                
+                const subjectLabel = document.createElement('label');
+                subjectLabel.className = 'form-label';
+                subjectLabel.textContent = 'SELECT SUBJECT';
+                filterContainer.appendChild(subjectLabel);
+                
+                const subjectWrapper = document.createElement('div');
+                subjectWrapper.id = 'subjectSelectWrapper';
+                filterContainer.appendChild(subjectWrapper);
+                
+                const chapterLabel = document.createElement('label');
+                chapterLabel.className = 'form-label';
+                chapterLabel.textContent = 'SELECT CHAPTER';
+                filterContainer.appendChild(chapterLabel);
+                
+                const chapterWrapper = document.createElement('div');
+                chapterWrapper.id = 'chapterSelectWrapper';
+                filterContainer.appendChild(chapterWrapper);
+                
+                // Initially disable chapter select until subject chosen
+                const emptyChapterSelect = createCustomSelect([], null, 'Select Chapter', () => {});
+                chapterWrapper.appendChild(emptyChapterSelect);
+                
+                let subjects = [];
+                try {
+                    subjects = await fetchSubjects();
+                } catch (err) {
+                    console.error(err);
+                    showToast('Failed to load subjects');
+                    subjectWrapper.innerHTML = '<div class="text-red-500 p-2">Error loading subjects</div>';
+                    return;
+                }
+                
+                // Add "Default Subject" option at the beginning
+                const subjectOptions = [{ value: "__DEFAULT__", label: "Default Subject" }];
+                subjects.forEach(s => {
+                    subjectOptions.push({ value: s.subjectId, label: s.subjectName });
+                });
+                
+                const subjectSelect = createCustomSelect(subjectOptions, null, 'Select Subject', async (subjectId, subjectName) => {
+                    if (subjectId === "__DEFAULT__") {
+                        // Reset current selections
+                        currentSubjectId = null;
+                        currentChapterId = null;
+                        currentSubjectName = "";
+                        currentChapterName = "";
+                        // Reset chapter dropdown to placeholder
+                        chapterWrapper.innerHTML = '';
+                        const resetChapterSelect = createCustomSelect([], null, 'Select Chapter', () => {});
+                        chapterWrapper.appendChild(resetChapterSelect);
+                        // Fetch and show recent lessons
+                        dynamicContainer.innerHTML = '<div class="loader"><div class="loader-dot"></div><div class="loader-dot"></div><div class="loader-dot"></div></div>';
+                        try {
+                            const recentLessons = await fetchRecentLessons();
+                            allLessonsData = recentLessons;
+                            renderLessons();
+                            const mainEl = document.querySelector('main');
+                            if (mainEl) mainEl.scrollTop = 0;
+                        } catch (err) {
+                            console.error(err);
+                            dynamicContainer.innerHTML = '<div class="text-center py-12 text-red-600">Failed to load recent lessons</div>';
+                        }
+                        return;
+                    }
+                    
+                    currentSubjectId = subjectId;
+                    currentSubjectName = subjectName;
+                    currentChapterId = null;
+                    currentChapterName = "";
+                    
+                    // Show loader in chapter dropdown
+                    chapterWrapper.innerHTML = '<div class="loader" style="padding:0.5rem"><div class="loader-dot"></div><div class="loader-dot"></div><div class="loader-dot"></div></div>';
+                    
+                    try {
+                        const chapters = await fetchChapters(subjectId);
+                        chapterWrapper.innerHTML = '';
+                        if (chapters.length === 0) {
+                            const emptySelect = createCustomSelect([], null, 'No chapters available', () => {});
+                            chapterWrapper.appendChild(emptySelect);
+                        } else {
+                            const chapterOptions = chapters.map(c => ({ value: c.chapterId, label: c.chapterName }));
+                            const chapterSelect = createCustomSelect(chapterOptions, null, 'Select Chapter', async (chapterId, chapterName) => {
+                                currentChapterId = chapterId;
+                                currentChapterName = chapterName;
+                                // Load lessons
+                                dynamicContainer.innerHTML = '<div class="loader"><div class="loader-dot"></div><div class="loader-dot"></div><div class="loader-dot"></div></div>';
+                                try {
+                                    allLessonsData = await fetchLessons(currentSubjectId, currentChapterId);
+                                    renderLessons();
+                                    const mainEl = document.querySelector('main');
+                                    if (mainEl) mainEl.scrollTop = 0;
+                                } catch (err) {
+                                    console.error(err);
+                                    dynamicContainer.innerHTML = '<div class="text-center py-12 text-red-600">Failed to load lessons</div>';
+                                }
+                            });
+                            chapterWrapper.appendChild(chapterSelect);
+                        }
+                    } catch (err) {
+                        console.error(err);
+                        chapterWrapper.innerHTML = '<div class="text-red-500 p-2">Failed to load chapters</div>';
+                    }
+                });
+                
+                subjectWrapper.innerHTML = '';
+                subjectWrapper.appendChild(subjectSelect);
+                
+                // After building filter, load recent lessons by default
+                dynamicContainer.innerHTML = '<div class="loader"><div class="loader-dot"></div><div class="loader-dot"></div><div class="loader-dot"></div></div>';
+                try {
+                    const recentLessons = await fetchRecentLessons();
+                    allLessonsData = recentLessons;
+                    renderLessons();
+                } catch (err) {
+                    console.error(err);
+                    dynamicContainer.innerHTML = '<div class="text-center py-12 text-red-600">Failed to load recent lessons</div>';
+                }
+            }
+            
+            const header = document.querySelector('header');
+            const mainElement = document.querySelector('main');
+            let lastScrollTop = 0;
+            let ticking = false;
+            
+            function updateHeaderPadding() {
+                if (!header || !mainElement) return;
+                const headerHeight = header.offsetHeight;
+                mainElement.style.paddingTop = headerHeight + 'px';
+            }
+            
+            function handleMainScroll() {
+                if (!header || !mainElement) return;
+                const currentScrollTop = mainElement.scrollTop;
+                if (currentScrollTop > lastScrollTop && currentScrollTop > 30) {
+                    header.classList.add('header-hidden');
+                } else if (currentScrollTop < lastScrollTop && currentScrollTop >= 0) {
+                    header.classList.remove('header-hidden');
+                }
+                if (currentScrollTop === 0) {
+                    header.classList.remove('header-hidden');
+                }
+                lastScrollTop = currentScrollTop;
+                ticking = false;
+            }
+            
+            function onMainScroll() {
+                if (!ticking) {
+                    requestAnimationFrame(handleMainScroll);
+                    ticking = true;
+                }
+            }
+            
+            function initSmartHeader() {
+                if (!header || !mainElement) return;
+                updateHeaderPadding();
+                mainElement.addEventListener('scroll', onMainScroll);
+                window.addEventListener('resize', () => updateHeaderPadding());
+                const resizeObserver = new ResizeObserver(() => updateHeaderPadding());
+                resizeObserver.observe(header);
+            }
+            
+            window.startAuthenticatedApp = async function() {
+                try {
+                    await buildFilterUI();
+                    initIntersectionObserver();
+                    initSmartHeader();
+                    if (mainElement) mainElement.scrollTop = 0;
+                } catch (err) {
+                    console.error('App initialization error:', err);
+                    throw err;
+                }
+            };
+            
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.custom-select-wrapper')) {
+                    closeAllDropdowns();
+                }
+            });
+        })();
+    </script>
+</body>
+</html>
