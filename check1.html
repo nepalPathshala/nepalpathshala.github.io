@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>School Registration Portal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyC6NRjkwiazA-aYF4okvnLW4qpCyMg8O9E",
+      authDomain: "fir-f3d53.firebaseapp.com",
+      databaseURL: "https://fir-f3d53-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "fir-f3d53",
+      storageBucket: "fir-f3d53.firebasestorage.app",
+      messagingSenderId: "683707045028",
+      appId: "1:683707045028:web:93990fa0de8767dda90231"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    // DOM elements
+    const authSection = document.getElementById('auth-section');
+    const schoolFormSection = document.getElementById('school-form-section');
+    const authStatus = document.getElementById('auth-status');
+    const loginEmail = document.getElementById('login-email');
+    const loginPassword = document.getElementById('login-password');
+    const signupEmail = document.getElementById('signup-email');
+    const signupPassword = document.getElementById('signup-password');
+    const authError = document.getElementById('auth-error');
+    const schoolForm = document.getElementById('school-registration-form');
+    const schoolResponse = document.getElementById('school-response');
+    const responseMessage = document.getElementById('response-message');
+    const userEmailSpan = document.getElementById('user-email');
+    const logoutBtn = document.getElementById('logout-btn');
+    const emailDisplay = document.getElementById('email-display');
+
+    function showAuthError(msg) {
+      authError.textContent = msg;
+      authError.classList.remove('hidden');
+      setTimeout(() => authError.classList.add('hidden'), 5000);
+    }
+
+    function showSchoolResponse(success, message, data = null) {
+      responseMessage.innerHTML = '';
+      schoolResponse.classList.remove('hidden');
+      const div = document.createElement('div');
+      div.className = success ? 'bg-green-100 border-green-500 text-green-700' : 'bg-red-100 border-red-500 text-red-700';
+      div.classList.add('border-l-4', 'p-4', 'rounded', 'shadow-sm');
+      div.innerHTML = `
+        <p class="font-bold">${success ? '✅ Success' : '❌ Error'}</p>
+        <p class="text-sm mt-1">${message}</p>
+        ${data ? `<pre class="mt-2 text-xs bg-white p-2 rounded overflow-x-auto">${JSON.stringify(data, null, 2)}</pre>` : ''}
+      `;
+      responseMessage.appendChild(div);
+    }
+
+    window.handleLogin = async () => {
+      const email = loginEmail.value.trim();
+      const password = loginPassword.value;
+      if (!email || !password) {
+        showAuthError('Please enter email and password');
+        return;
+      }
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        loginEmail.value = '';
+        loginPassword.value = '';
+      } catch (err) {
+        showAuthError(err.message);
+      }
+    };
+
+    window.handleSignup = async () => {
+      const email = signupEmail.value.trim();
+      const password = signupPassword.value;
+      if (!email || !password) {
+        showAuthError('Please enter email and password for signup');
+        return;
+      }
+      if (password.length < 6) {
+        showAuthError('Password must be at least 6 characters');
+        return;
+      }
+      try {
+        await createUserWithEmailAndPassword(auth, email, password);
+        signupEmail.value = '';
+        signupPassword.value = '';
+      } catch (err) {
+        showAuthError(err.message);
+      }
+    };
+
+    window.handleLogout = async () => {
+      await auth.signOut();
+    };
+
+    schoolForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      schoolResponse.classList.add('hidden');
+
+      const user = auth.currentUser;
+      if (!user) {
+        showSchoolResponse(false, 'You must be logged in to register a school.');
+        return;
+      }
+
+      // Use the authenticated user's email directly (instead of the readonly input)
+      const userEmail = user.email;
+      if (!userEmail || !/^[^\s@]+@([^\s@]+\.)+[^\s@]+$/.test(userEmail)) {
+        showSchoolResponse(false, 'Authenticated user email is invalid.');
+        return;
+      }
+
+      let tokenId;
+      try {
+        tokenId = await user.getIdToken();
+      } catch (err) {
+        showSchoolResponse(false, `Failed to get authentication token: ${err.message}`);
+        return;
+      }
+
+      const schoolName = document.getElementById('schoolName').value.trim();
+      const iemisCode = document.getElementById('iemisCode').value.trim() || undefined;
+      const userName = document.getElementById('userName').value.trim();
+      const phoneNumber = document.getElementById('phoneNumber').value.trim();
+      const schoolAddress = document.getElementById('schoolAddress').value.trim();
+      const schoolLogo = document.getElementById('schoolLogo').value.trim() || undefined;
+
+      // Frontend validation (mirroring backend)
+      if (!schoolName || schoolName.length < 3) {
+        showSchoolResponse(false, 'School name must be at least 3 characters.');
+        return;
+      }
+      if (!userName || userName.length < 3) {
+        showSchoolResponse(false, 'User name must be at least 3 characters.');
+        return;
+      }
+      // Phone: allow any format, but must contain 7-15 digits after stripping non-digits
+      const digitsOnly = phoneNumber.replace(/\D/g, '');
+      if (!digitsOnly || digitsOnly.length < 7 || digitsOnly.length > 15) {
+        showSchoolResponse(false, 'Phone number must contain 7-15 digits (non-digits will be stripped).');
+        return;
+      }
+      if (!schoolAddress) {
+        showSchoolResponse(false, 'School address is required.');
+        return;
+      }
+      if (iemisCode && iemisCode !== '') {
+        if (!/^\d{5,15}$/.test(iemisCode)) {
+          showSchoolResponse(false, 'IEMIS code must be numeric and 5-15 digits long.');
+          return;
+        }
+      }
+
+      const payload = {
+        tokenId,
+        schoolName,
+        iemisCode: iemisCode || null,
+        userName,
+        email: userEmail,   // send the authenticated user's email
+        phoneNumber,
+        schoolAddress,
+        schoolLogo: schoolLogo || null
+      };
+
+      try {
+        const response = await fetch('/api/register-school', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const result = await response.json();
+        if (response.ok) {
+          showSchoolResponse(true, result.message || 'Registration successful!', result.data);
+          schoolForm.reset();
+          // keep the email display (it's readonly and already set)
+          document.getElementById('email-display').value = userEmail;
+        } else {
+          showSchoolResponse(false, result.message || 'Registration failed.', result);
+        }
+      } catch (err) {
+        showSchoolResponse(false, `Network error: ${err.message}`);
+      }
+    });
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        authSection.classList.add('hidden');
+        schoolFormSection.classList.remove('hidden');
+        authStatus.textContent = `Logged in as: ${user.email}`;
+        userEmailSpan.textContent = user.email;
+        // Set the email display field (readonly, for user reference)
+        emailDisplay.value = user.email;
+      } else {
+        authSection.classList.remove('hidden');
+        schoolFormSection.classList.add('hidden');
+        authStatus.textContent = 'Not logged in';
+        schoolResponse.classList.add('hidden');
+      }
+    });
+  </script>
+</head>
+<body class="bg-gray-100 font-sans antialiased">
+  <div class="max-w-4xl mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold text-center text-indigo-700 mb-8">🏫 School Registration Portal</h1>
+
+    <!-- Authentication Section -->
+    <div id="auth-section" class="bg-white rounded-lg shadow-md p-6 mb-6">
+      <h2 class="text-xl font-semibold text-gray-800 mb-4">🔐 Authentication</h2>
+      <div id="auth-error" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded mb-4"></div>
+      <div class="grid md:grid-cols-2 gap-6">
+        <div class="border rounded-md p-4">
+          <h3 class="text-lg font-medium mb-3">Login</h3>
+          <input type="email" id="login-email" placeholder="Email" class="w-full border rounded px-3 py-2 mb-2" />
+          <input type="password" id="login-password" placeholder="Password" class="w-full border rounded px-3 py-2 mb-3" />
+          <button onclick="handleLogin()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded w-full transition">Login</button>
+        </div>
+        <div class="border rounded-md p-4">
+          <h3 class="text-lg font-medium mb-3">Create Account</h3>
+          <input type="email" id="signup-email" placeholder="Email" class="w-full border rounded px-3 py-2 mb-2" />
+          <input type="password" id="signup-password" placeholder="Password (min 6 chars)" class="w-full border rounded px-3 py-2 mb-3" />
+          <button onclick="handleSignup()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded w-full transition">Sign Up</button>
+        </div>
+      </div>
+      <p class="text-sm text-gray-500 mt-4 text-center">After login/signup, the school registration form will appear.</p>
+    </div>
+
+    <!-- School Registration Section (visible when authenticated) -->
+    <div id="school-form-section" class="hidden bg-white rounded-lg shadow-md p-6">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-semibold text-gray-800">📝 Register a New School</h2>
+        <button id="logout-btn" onclick="handleLogout()" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm">Logout</button>
+      </div>
+      <div id="auth-status" class="text-sm text-gray-600 mb-4 bg-gray-100 p-2 rounded"></div>
+
+      <form id="school-registration-form">
+        <div class="grid md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700">School Name *</label>
+            <input type="text" id="schoolName" required class="mt-1 w-full border rounded px-3 py-2" placeholder="e.g., National Pathshala" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">IEMIS Code (optional)</label>
+            <input type="text" id="iemisCode" class="mt-1 w-full border rounded px-3 py-2" placeholder="Numeric, 5-15 digits" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">User Name *</label>
+            <input type="text" id="userName" required class="mt-1 w-full border rounded px-3 py-2" placeholder="Admin full name" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Email (from account) *</label>
+            <input type="email" id="email-display" readonly class="mt-1 w-full border rounded px-3 py-2 bg-gray-50" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Phone Number *</label>
+            <input type="tel" id="phoneNumber" required class="mt-1 w-full border rounded px-3 py-2" placeholder="e.g., 9800000000 or +977-9800000000" />
+          </div>
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700">School Address *</label>
+            <input type="text" id="schoolAddress" required class="mt-1 w-full border rounded px-3 py-2" placeholder="Full address" />
+          </div>
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700">School Logo URL (optional)</label>
+            <input type="text" id="schoolLogo" class="mt-1 w-full border rounded px-3 py-2" placeholder="https://example.com/logo.png" />
+          </div>
+        </div>
+        <div class="mt-6">
+          <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-2 rounded shadow transition w-full md:w-auto">Register School</button>
+        </div>
+      </form>
+
+      <div id="school-response" class="hidden mt-6"></div>
+      <div id="response-message"></div>
+    </div>
+
+    <footer class="text-center text-gray-400 text-xs mt-8">
+      Backend endpoint: POST /api/register-school | Firebase Auth integrated
+    </footer>
+  </div>
+</body>
+</html>
