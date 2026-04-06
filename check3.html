@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Ultimate Solution | Course & Subject Manager</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Creepster&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden !important;
+        }
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #ffffff;
+            color: #1a202c;
+            -webkit-touch-callout: none;
+            user-select: none;
+            touch-action: pan-y pinch-zoom;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        main {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        main::-webkit-scrollbar { display: none; }
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 50;
+            background-color: white;
+            border-bottom: 1px solid #f0f0f0;
+            transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            transform: translateY(0);
+        }
+        header.header-hidden { transform: translateY(-100%); }
+        .header-shadow { box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .brand-font { font-family: 'Creepster', system-ui; }
+        .title-underline { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 6px; }
+        .form-section-container {
+            background-color: #dbeafe;
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            margin-top: 0;
+        }
+        .form-input {
+            width: 100%;
+            padding: 12px 18px;
+            border: 1px solid #cbd5e1;
+            border-radius: 9999px;
+            font-size: 0.9rem;
+            outline: none;
+            background-color: #fff;
+            font-family: 'Montserrat', sans-serif;
+            transition: all 0.2s;
+            margin-bottom: 1.25rem;
+        }
+        .form-input:focus {
+            border-color: #3182ce;
+            box-shadow: 0 0 0 3px rgba(49,130,206,0.1);
+        }
+        .form-label {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 12px;
+            margin-top: 0;
+            white-space: nowrap;
+            width: 100%;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .form-label::before, .form-label::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background-color: #94a3b8;
+        }
+        .form-label::before { margin-right: 8px; }
+        .form-label::after { margin-left: 8px; }
+        .custom-select-wrapper {
+            position: relative;
+            width: 100%;
+            margin-bottom: 1.5rem;
+        }
+        .custom-select-trigger {
+            width: 100%;
+            padding: 12px 18px;
+            border: 1px solid #cbd5e1;
+            border-radius: 9999px;
+            font-size: 0.9rem;
+            background-color: #fff;
+            font-family: 'Montserrat', sans-serif;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .custom-select-trigger span:first-child {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            flex: 1;
+        }
+        .custom-select-trigger::after {
+            content: "▼";
+            font-size: 0.7rem;
+            color: #64748b;
+            transition: transform 0.2s;
+            margin-left: 12px;
+            flex-shrink: 0;
+        }
+        .custom-select-trigger.open::after { transform: rotate(180deg); }
+        .custom-select-dropdown {
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0;
+            width: 100%;
+            background-color: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+            z-index: 50;
+            display: none;
+            max-height: 280px;
+            overflow-y: auto;
+        }
+        .custom-select-dropdown.show { display: block; }
+        .custom-select-option {
+            padding: 12px 18px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: background 0.1s;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .custom-select-option:hover { background-color: #f1f5f9; }
+        .custom-select-option.selected { background-color: #eef2ff; font-weight: 500; }
+        .custom-select-option.disabled { color: #94a3b8; cursor: not-allowed; }
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+            width: 100%;
+        }
+        .section-header .header-text {
+            font-size: 1.875rem;
+            font-weight: 800;
+            color: #111827;
+            text-transform: uppercase;
+            text-decoration: underline;
+            text-decoration-thickness: 2px;
+            text-underline-offset: 6px;
+            white-space: nowrap;
+        }
+        .section-header .line {
+            flex: 1;
+            height: 1px;
+            background-color: #94a3b8;
+        }
+        .btn-primary {
+            background-color: #3b82f6;
+            color: white;
+            font-weight: 600;
+            padding: 10px 24px;
+            border-radius: 9999px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: opacity 0.2s;
+        }
+        .btn-primary:hover { background-color: #2563eb; }
+        .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+        .btn-danger {
+            background-color: #ef4444;
+            color: white;
+            font-weight: 600;
+            padding: 10px 24px;
+            border-radius: 9999px;
+            border: none;
+            cursor: pointer;
+        }
+        .btn-danger:hover { background-color: #dc2626; }
+        .form-buttons { display: flex; gap: 12px; margin-top: 16px; justify-content: flex-end; }
+        .conditional-fields { transition: all 0.2s ease; }
+        .toast-notification {
+            transition: opacity 0.25s;
+            opacity: 0;
+            visibility: hidden;
+            backdrop-filter: blur(4px);
+        }
+        .toast-notification.show { opacity: 1; visibility: visible; }
+        #auth-loader-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #ffffff;
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        .auth-spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid #e2e8f0;
+            border-top-color: #3182ce;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .main-content-wrapper { padding-top: 20px; }
+        .loading-spinner-small {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid white;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+        .subject-loading {
+            font-size: 0.8rem;
+            color: #475569;
+            padding: 8px 0;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div id="auth-loader-overlay">
+        <div class="auth-spinner"></div>
+        <div class="auth-loader-text">Verifying access...</div>
+    </div>
+
+    <header class="header-shadow bg-white border-b border-gray-100">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+            <div class="bg-black px-4 py-2 rounded-md">
+                <h1 class="brand-font text-white text-2xl tracking-wider">ULTIMATE SOLUTION</h1>
+            </div>
+            <div class="flex items-center space-x-3">
+                <div class="p-2 text-blue-500 bg-blue-50 rounded-md cursor-pointer">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                </div>
+                <div class="p-2 text-white bg-blue-500 rounded-md cursor-pointer">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" /></svg>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="max-w-3xl md:max-w-4xl mx-auto px-4 md:px-6 main-content-wrapper">
+            <div id="forms-root"></div>
+        </div>
+        <footer class="py-12 bg-gray-50 mt-16 border-t border-gray-200 text-center">
+            <span class="text-gray-500 font-bold tracking-widest text-sm title-underline">©2026 ULTIMATE SOLUTION</span>
+        </footer>
+    </main>
+
+    <div id="customToast" class="fixed bottom-6 left-1/2 transform -translate-x-1/2 md:left-auto md:right-6 md:translate-x-0 z-50 toast-notification bg-gradient-to-r from-red-600 to-red-700 text-white px-6 py-3 rounded-xl shadow-2xl flex items-center gap-3 font-semibold">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+        <span id="toastMessage">Notification</span>
+    </div>
+
+    <script type="module">
+        // ---------------------- CONFIGURATION ----------------------
+        const API_BASE_URL = 'https://dilshadalmm-yosv.onrender.com';   // <-- CHANGE TO YOUR BACKEND URL
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyC6NRjkwiazA-aYF4okvnLW4qpCyMg8O9E",
+            authDomain: "fir-f3d53.firebaseapp.com",
+            databaseURL: "https://fir-f3d53-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "fir-f3d53",
+            storageBucket: "fir-f3d53.firebasestorage.app",
+            messagingSenderId: "683707045028",
+            appId: "1:683707045028:web:93990fa0de8767dda90231"
+        };
+        const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
+        const { getAuth, onAuthStateChanged, getIdToken } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js');
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        window.firebaseAuth = auth;
+        window.currentUser = null;
+        
+        // ---------------------- LOCAL STORAGE HELPERS (Courses) ----------------------
+        const COURSES_KEY = 'ultimate_courses';
+        
+        function getCourses() {
+            const stored = localStorage.getItem(COURSES_KEY);
+            return stored ? JSON.parse(stored) : [];
+        }
+        function saveCourses(courses) { localStorage.setItem(COURSES_KEY, JSON.stringify(courses)); }
+        
+        function updateCourse(id, newName, newDesc) {
+            let courses = getCourses();
+            const idx = courses.findIndex(c => c.id === id);
+            if (idx !== -1) { courses[idx] = { ...courses[idx], name: newName.trim(), description: newDesc.trim() }; saveCourses(courses); }
+            return courses;
+        }
+        function deleteCourse(id) {
+            let courses = getCourses();
+            courses = courses.filter(c => c.id !== id);
+            saveCourses(courses);
+            // Also delete all subjects under this course (using courseCode)
+            let subjects = getSubjects();
+            subjects = subjects.filter(s => s.courseCode !== id);
+            saveSubjects(subjects);
+            return courses;
+        }
+        
+        // Sync backend courses into localStorage (map courseCode -> id, courseName -> name, courseDescription -> description)
+        function syncCoursesFromBackend(backendCourses) {
+            const localCourses = backendCourses.map(c => ({
+                id: c.courseCode,
+                name: c.courseName,
+                description: c.courseDescription || ''
+            }));
+            saveCourses(localCourses);
+            return localCourses;
+        }
+        
+        // ---------------------- LOCAL STORAGE HELPERS (Subjects) ----------------------
+        const SUBJECTS_KEY = 'ultimate_subjects';
+        
+        function getSubjects() {
+            const stored = localStorage.getItem(SUBJECTS_KEY);
+            return stored ? JSON.parse(stored) : [];
+        }
+        function saveSubjects(subjects) { localStorage.setItem(SUBJECTS_KEY, JSON.stringify(subjects)); }
+        
+        function addSubject(courseCode, name, description) {
+            const subjects = getSubjects();
+            const newId = Date.now().toString() + Math.random();
+            subjects.push({ id: newId, courseCode, name: name.trim(), description: description.trim() });
+            saveSubjects(subjects);
+            return subjects;
+        }
+        function updateSubject(id, newName, newDesc) {
+            let subjects = getSubjects();
+            const idx = subjects.findIndex(s => s.id === id);
+            if (idx !== -1) { subjects[idx] = { ...subjects[idx], name: newName.trim(), description: newDesc.trim() }; saveSubjects(subjects); }
+            return subjects;
+        }
+        function deleteSubject(id) {
+            let subjects = getSubjects();
+            subjects = subjects.filter(s => s.id !== id);
+            saveSubjects(subjects);
+            return subjects;
+        }
+        function getSubjectsByCourse(courseCode) {
+            return getSubjects().filter(s => s.courseCode === courseCode);
+        }
+        
+        // ---------- Fetch courses from backend ----------
+        async function fetchAndStoreCourses(token) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/get-user-courses?tokenId=${encodeURIComponent(token)}`);
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'Failed to fetch courses');
+                const backendCourses = data.courses || [];
+                // Store in localStorage for update/delete sections
+                syncCoursesFromBackend(backendCourses);
+                // Also keep raw array for create subject dropdown (to get courseName)
+                window.backendCourses = backendCourses;
+                return backendCourses;
+            } catch (err) {
+                console.error('fetchCourses error:', err);
+                showToast('Could not load courses from server.', true);
+                window.backendCourses = [];
+                return [];
+            }
+        }
+        
+        // ---------- UI Helpers ----------
+        function showToast(msg, isError = true) {
+            const toast = document.getElementById('customToast');
+            const span = document.getElementById('toastMessage');
+            if (!toast) return;
+            span.innerText = msg;
+            toast.classList.remove('show');
+            void toast.offsetWidth;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2500);
+        }
+        function closeAllDropdowns() {
+            document.querySelectorAll('.custom-select-dropdown').forEach(dd => dd.classList.remove('show'));
+            document.querySelectorAll('.custom-select-trigger').forEach(tr => tr.classList.remove('open'));
+        }
+        function createFormLabel(text) {
+            const div = document.createElement('div');
+            div.className = 'form-label';
+            div.textContent = text.toUpperCase();
+            return div;
+        }
+        // options: array of { value, label }
+        function createCustomSelect(options, selectedValue, placeholder, onSelect) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'custom-select-wrapper';
+            const trigger = document.createElement('div');
+            trigger.className = 'custom-select-trigger';
+            const triggerSpan = document.createElement('span');
+            triggerSpan.textContent = placeholder;
+            trigger.appendChild(triggerSpan);
+            const dropdown = document.createElement('div');
+            dropdown.className = 'custom-select-dropdown';
+            if (!options.length) {
+                const noOpt = document.createElement('div');
+                noOpt.className = 'custom-select-option disabled';
+                noOpt.textContent = 'No items available';
+                dropdown.appendChild(noOpt);
+            } else {
+                options.forEach(opt => {
+                    const optDiv = document.createElement('div');
+                    optDiv.className = 'custom-select-option';
+                    if (selectedValue === opt.value) optDiv.classList.add('selected');
+                    optDiv.textContent = opt.label;
+                    optDiv.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        triggerSpan.textContent = opt.label;
+                        dropdown.classList.remove('show');
+                        trigger.classList.remove('open');
+                        onSelect(opt.value);
+                        dropdown.querySelectorAll('.custom-select-option').forEach(el => el.classList.remove('selected'));
+                        optDiv.classList.add('selected');
+                    });
+                    dropdown.appendChild(optDiv);
+                });
+            }
+            trigger.addEventListener('click', (e) => {
+                e.stopPropagation();
+                closeAllDropdowns();
+                dropdown.classList.add('show');
+                trigger.classList.add('open');
+            });
+            wrapper.appendChild(trigger);
+            wrapper.appendChild(dropdown);
+            return wrapper;
+        }
+        
+        let fullRefresh = null;
+        
+        // ---------------------- CREATE COURSE (unchanged) ----------------------
+        function renderCreateCourseSection() {
+            const container = document.createElement('div');
+            container.className = 'mb-12';
+            const headerDiv = document.createElement('div');
+            headerDiv.className = 'section-header';
+            headerDiv.innerHTML = '<div class="line"></div><div class="header-text">CREATE COURSE</div><div class="line"></div>';
+            const form = document.createElement('div');
+            form.className = 'form-section-container';
+            form.appendChild(createFormLabel('COURSE NAME'));
+            const nameInp = document.createElement('input');
+            nameInp.type = 'text';
+            nameInp.placeholder = 'e.g., MECEE Physics 2080';
+            nameInp.className = 'form-input';
+            form.appendChild(nameInp);
+            form.appendChild(createFormLabel('DESCRIPTION'));
+            const descInp = document.createElement('input');
+            descInp.type = 'text';
+            descInp.placeholder = 'Brief description';
+            descInp.className = 'form-input';
+            form.appendChild(descInp);
+            const btnDiv = document.createElement('div');
+            btnDiv.className = 'form-buttons';
+            const submitBtn = document.createElement('button');
+            submitBtn.textContent = 'SUBMIT COURSE';
+            submitBtn.className = 'btn-primary';
+            btnDiv.appendChild(submitBtn);
+            form.appendChild(btnDiv);
+            container.appendChild(headerDiv);
+            container.appendChild(form);
+            
+            submitBtn.addEventListener('click', async () => {
+                const name = nameInp.value.trim();
+                const desc = descInp.value.trim();
+                if (!name) { showToast('Please enter course name'); return; }
+                const user = window.currentUser;
+                if (!user) { showToast('Authentication error'); return; }
+                const originalText = submitBtn.textContent;
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="loading-spinner-small"></span> Creating...';
+                try {
+                    const token = await getIdToken(user);
+                    const response = await fetch(`${API_BASE_URL}/create-course`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ tokenId: token, courseName: name, courseDescription: desc })
+                    });
+                    const data = await response.json();
+                    if (!response.ok) throw new Error(data.error || 'Failed to create course');
+                    showToast(`Course "${data.course.courseName}" created!`, false);
+                    nameInp.value = '';
+                    descInp.value = '';
+                    // Refresh courses from backend
+                    const newToken = await getIdToken(user);
+                    await fetchAndStoreCourses(newToken);
+                    if (fullRefresh) fullRefresh();
+                } catch (err) {
+                    showToast(err.message);
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalText;
+                }
+            });
+            return container;
+        }
+        
+        // ---------------------- UPDATE COURSE (localStorage) ----------------------
+        function renderUpdateCourseSection() {
+            const container = document.createElement('div');
+            container.className = 'mb-12';
+            const headerDiv = document.createElement('div');
+            headerDiv.className = 'section-header';
+            headerDiv.innerHTML = '<div class="line"></div><div class="header-text">UPDATE COURSE</div><div class="line"></div>';
+            const form = document.createElement('div');
+            form.className = 'form-section-container';
+            form.appendChild(createFormLabel('SELECT COURSE'));
+            const selectWrapper = document.createElement('div');
+            selectWrapper.id = 'update-course-select-wrapper';
+            form.appendChild(selectWrapper);
+            const conditionalDiv = document.createElement('div');
+            conditionalDiv.className = 'conditional-fields';
+            conditionalDiv.style.display = 'none';
+            form.appendChild(conditionalDiv);
+            conditionalDiv.appendChild(createFormLabel('EDIT COURSE NAME'));
+            const nameInp = document.createElement('input');
+            nameInp.className = 'form-input';
+            nameInp.placeholder = 'Updated course name';
+            conditionalDiv.appendChild(nameInp);
+            conditionalDiv.appendChild(createFormLabel('EDIT DESCRIPTION'));
+            const descInp = document.createElement('input');
+            descInp.className = 'form-input';
+            descInp.placeholder = 'Updated description';
+            conditionalDiv.appendChild(descInp);
+            const btnDiv = document.createElement('div');
+            btnDiv.className = 'form-buttons';
+            const updateBtn = document.createElement('button');
+            updateBtn.textContent = 'UPDATE';
+            updateBtn.className = 'btn-primary';
+            const deleteBtn = document.createElement('button');
+            deleteBtn.textContent = 'DELETE';
+            deleteBtn.className = 'btn-danger';
+            btnDiv.appendChild(updateBtn);
+            btnDiv.appendChild(deleteBtn);
+            conditionalDiv.appendChild(btnDiv);
+            container.appendChild(headerDiv);
+            container.appendChild(form);
+            let selectedId = null;
+            function rebuild(wrapperElement) {
+                const courses = getCourses();
+                const options = courses.map(c => ({ value: c.id, label: c.name }));
+                wrapperElement.innerHTML = '';
+                const placeholder = courses.length ? 'Select a course' : 'No courses available';
+                const select = createCustomSelect(options, null, placeholder, (val) => {
+                    selectedId = val;
+                    const course = getCourses().find(c => c.id === val);
+                    if (course) {
+                        nameInp.value = course.name;
+                        descInp.value = course.description || '';
+                        conditionalDiv.style.display = 'block';
+                    } else {
+                        conditionalDiv.style.display = 'none';
+                    }
+                });
+                wrapperElement.appendChild(select);
+                if (!courses.length) conditionalDiv.style.display = 'none';
+                else if (selectedId && !courses.find(c => c.id === selectedId)) {
+                    selectedId = null;
+                    conditionalDiv.style.display = 'none';
+                }
+            }
+            rebuild(selectWrapper);
+            updateBtn.addEventListener('click', () => {
+                if (!selectedId) { showToast('Select a course first'); return; }
+                const newName = nameInp.value.trim();
+                if (!newName) { showToast('Course name required'); return; }
+                updateCourse(selectedId, newName, descInp.value.trim());
+                showToast('Course updated');
+                if (fullRefresh) fullRefresh();
+            });
+            deleteBtn.addEventListener('click', () => {
+                if (!selectedId) { showToast('Select a course'); return; }
+                if (confirm('Delete this course and its subjects?')) {
+                    deleteCourse(selectedId);
+                    showToast('Course deleted');
+                    if (fullRefresh) fullRefresh();
+                }
+            });
+            return container;
+        }
+        
+        // ---------------------- CREATE SUBJECT (backend + localStorage) ----------------------
+        function renderCreateSubjectSection() {
+            const container = document.createElement('div');
+            container.className = 'mb-12';
+            const headerDiv = document.createElement('div');
+            headerDiv.className = 'section-header';
+            headerDiv.innerHTML = '<div class="line"></div><div class="header-text">CREATE SUBJECT</div><div class="line"></div>';
+            const form = document.createElement('div');
+            form.className = 'form-section-container';
+            form.appendChild(createFormLabel('SELECT COURSE'));
+            const courseSelectWrapper = document.createElement('div');
+            courseSelectWrapper.id = 'create-subject-course-wrapper';
+            form.appendChild(courseSelectWrapper);
+            form.appendChild(createFormLabel('SUBJECT NAME'));
+            const nameInp = document.createElement('input');
+            nameInp.className = 'form-input';
+            nameInp.placeholder = 'e.g., Thermodynamics';
+            form.appendChild(nameInp);
+            form.appendChild(createFormLabel('DESCRIPTION'));
+            const descInp = document.createElement('input');
+            descInp.className = 'form-input';
+            descInp.placeholder = 'Subject description';
+            form.appendChild(descInp);
+            const btnDiv = document.createElement('div');
+            btnDiv.className = 'form-buttons';
+            const submitBtn = document.createElement('button');
+            submitBtn.textContent = 'SUBMIT SUBJECT';
+            submitBtn.className = 'btn-primary';
+            btnDiv.appendChild(submitBtn);
+            form.appendChild(btnDiv);
+            container.appendChild(headerDiv);
+            container.appendChild(form);
+            
+            let selectedCourseCode = null;
+            
+            function rebuildCourseSelect() {
+                const options = (window.backendCourses || []).map(c => ({ value: c.courseCode, label: c.courseName }));
+                courseSelectWrapper.innerHTML = '';
+                const placeholder = options.length ? 'Select a course' : 'No courses available';
+                const select = createCustomSelect(options, null, placeholder, (val) => { selectedCourseCode = val; });
+                courseSelectWrapper.appendChild(select);
+            }
+            rebuildCourseSelect();
+            
+            submitBtn.addEventListener('click', async () => {
+                if (!selectedCourseCode) { showToast('Please select a course'); return; }
+                const subjName = nameInp.value.trim();
+                if (!subjName) { showToast('Subject name required'); return; }
+                const user = window.currentUser;
+                if (!user) { showToast('Authentication error'); return; }
+                
+                const originalText = submitBtn.textContent;
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="loading-spinner-small"></span> Creating...';
+                
+                try {
+                    const token = await getIdToken(user);
+                    const response = await fetch(`${API_BASE_URL}/create-subject`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            tokenId: token,
+                            courseCode: selectedCourseCode,
+                            subjectName: subjName,
+                            subjectDescription: descInp.value.trim()
+                        })
+                    });
+                    const data = await response.json();
+                    if (!response.ok) throw new Error(data.error || 'Failed to create subject');
+                    
+                    addSubject(selectedCourseCode, subjName, descInp.value.trim());
+                    showToast(`Subject "${subjName}" created successfully!`, false);
+                    nameInp.value = '';
+                    descInp.value = '';
+                    if (fullRefresh) fullRefresh();
+                } catch (err) {
+                    showToast(err.message);
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalText;
+                }
+            });
+            return container;
+        }
+        
+        // ---------------------- UPDATE SUBJECT (local only) ----------------------
+        function renderUpdateSubjectSection() {
+            const container = document.createElement('div');
+            container.className = 'mb-12';
+            const headerDiv = document.createElement('div');
+            headerDiv.className = 'section-header';
+            headerDiv.innerHTML = '<div class="line"></div><div class="header-text">UPDATE SUBJECT</div><div class="line"></div>';
+            const form = document.createElement('div');
+            form.className = 'form-section-container';
+            form.appendChild(createFormLabel('SELECT COURSE'));
+            const courseWrapper = document.createElement('div');
+            courseWrapper.id = 'update-subject-course-wrapper';
+            form.appendChild(courseWrapper);
+            form.appendChild(createFormLabel('SELECT SUBJECT'));
+            const subjectWrapper = document.createElement('div');
+            subjectWrapper.id = 'update-subject-subject-wrapper';
+            form.appendChild(subjectWrapper);
+            const conditionalDiv = document.createElement('div');
+            conditionalDiv.className = 'conditional-fields';
+            conditionalDiv.style.display = 'none';
+            form.appendChild(conditionalDiv);
+            conditionalDiv.appendChild(createFormLabel('SUBJECT NAME'));
+            const nameInp = document.createElement('input');
+            nameInp.className = 'form-input';
+            conditionalDiv.appendChild(nameInp);
+            conditionalDiv.appendChild(createFormLabel('DESCRIPTION'));
+            const descInp = document.createElement('input');
+            descInp.className = 'form-input';
+            conditionalDiv.appendChild(descInp);
+            const btnDiv = document.createElement('div');
+            btnDiv.className = 'form-buttons';
+            const updateBtn = document.createElement('button');
+            updateBtn.textContent = 'UPDATE SUBJECT';
+            updateBtn.className = 'btn-primary';
+            const deleteBtn = document.createElement('button');
+            deleteBtn.textContent = 'DELETE SUBJECT';
+            deleteBtn.className = 'btn-danger';
+            btnDiv.appendChild(updateBtn);
+            btnDiv.appendChild(deleteBtn);
+            conditionalDiv.appendChild(btnDiv);
+            container.appendChild(headerDiv);
+            container.appendChild(form);
+            
+            let currentCourseCode = null;
+            let currentSubjectId = null;
+            
+            function rebuildCourseSelect() {
+                const options = (window.backendCourses || []).map(c => ({ value: c.courseCode, label: c.courseName }));
+                courseWrapper.innerHTML = '';
+                const placeholder = options.length ? 'Select a course' : 'No courses available';
+                const select = createCustomSelect(options, null, placeholder, (courseCode) => {
+                    currentCourseCode = courseCode;
+                    currentSubjectId = null;
+                    conditionalDiv.style.display = 'none';
+                    rebuildSubjectSelect(courseCode);
+                });
+                courseWrapper.appendChild(select);
+            }
+            
+            function rebuildSubjectSelect(courseCode) {
+                const subjects = getSubjectsByCourse(courseCode);
+                const options = subjects.map(s => ({ value: s.id, label: s.name }));
+                subjectWrapper.innerHTML = '';
+                const placeholder = subjects.length ? 'Select a subject' : 'No subjects available';
+                const select = createCustomSelect(options, null, placeholder, (subjId) => {
+                    currentSubjectId = subjId;
+                    const subject = subjects.find(s => s.id === subjId);
+                    if (subject) {
+                        nameInp.value = subject.name;
+                        descInp.value = subject.description || '';
+                        conditionalDiv.style.display = 'block';
+                    } else {
+                        conditionalDiv.style.display = 'none';
+                    }
+                });
+                subjectWrapper.appendChild(select);
+                if (!subjects.length) conditionalDiv.style.display = 'none';
+            }
+            
+            rebuildCourseSelect();
+            
+            updateBtn.addEventListener('click', () => {
+                if (!currentSubjectId) { showToast('Select a subject first'); return; }
+                const newName = nameInp.value.trim();
+                if (!newName) { showToast('Subject name required'); return; }
+                updateSubject(currentSubjectId, newName, descInp.value.trim());
+                showToast('Subject updated');
+                if (fullRefresh) fullRefresh();
+            });
+            deleteBtn.addEventListener('click', () => {
+                if (!currentSubjectId) { showToast('Select a subject'); return; }
+                if (confirm('Delete this subject?')) {
+                    deleteSubject(currentSubjectId);
+                    showToast('Subject deleted');
+                    if (fullRefresh) fullRefresh();
+                }
+            });
+            return container;
+        }
+
+        // ---------------------- CREATE CHAPTER (NEW) ----------------------
+        async function fetchActiveSubjects(token, courseCode) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/get-active-subjects`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ tokenId: token, courseCode })
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'Failed to fetch subjects');
+                return data.subjects || [];
+            } catch (err) {
+                console.error('fetchActiveSubjects error:', err);
+                showToast(err.message);
+                return [];
+            }
+        }
+
+        function renderCreateChapterSection() {
+            const container = document.createElement('div');
+            container.className = 'mb-12';
+            const headerDiv = document.createElement('div');
+            headerDiv.className = 'section-header';
+            headerDiv.innerHTML = '<div class="line"></div><div class="header-text">CREATE CHAPTER</div><div class="line"></div>';
+            const form = document.createElement('div');
+            form.className = 'form-section-container';
+            
+            // SELECT COURSE
+            form.appendChild(createFormLabel('SELECT COURSE'));
+            const courseSelectWrapper = document.createElement('div');
+            courseSelectWrapper.id = 'chapter-course-wrapper';
+            form.appendChild(courseSelectWrapper);
+            
+            // SELECT SUBJECT (dynamic)
+            form.appendChild(createFormLabel('SELECT SUBJECT'));
+            const subjectSelectWrapper = document.createElement('div');
+            subjectSelectWrapper.id = 'chapter-subject-wrapper';
+            form.appendChild(subjectSelectWrapper);
+            const subjectLoadingMsg = document.createElement('div');
+            subjectLoadingMsg.className = 'subject-loading';
+            subjectLoadingMsg.textContent = 'Select a course first';
+            subjectSelectWrapper.appendChild(subjectLoadingMsg);
+            
+            // CHAPTER NAME
+            form.appendChild(createFormLabel('CHAPTER NAME'));
+            const chapterNameInp = document.createElement('input');
+            chapterNameInp.type = 'text';
+            chapterNameInp.placeholder = 'e.g., Introduction to Thermodynamics';
+            chapterNameInp.className = 'form-input';
+            form.appendChild(chapterNameInp);
+            
+            // DESCRIPTION
+            form.appendChild(createFormLabel('DESCRIPTION'));
+            const chapterDescInp = document.createElement('input');
+            chapterDescInp.type = 'text';
+            chapterDescInp.placeholder = 'Brief chapter description';
+            chapterDescInp.className = 'form-input';
+            form.appendChild(chapterDescInp);
+            
+            const btnDiv = document.createElement('div');
+            btnDiv.className = 'form-buttons';
+            const submitBtn = document.createElement('button');
+            submitBtn.textContent = 'CREATE CHAPTER';
+            submitBtn.className = 'btn-primary';
+            btnDiv.appendChild(submitBtn);
+            form.appendChild(btnDiv);
+            
+            container.appendChild(headerDiv);
+            container.appendChild(form);
+            
+            let selectedCourseCode = null;
+            let selectedSubjectId = null;
+            let currentSubjectSelect = null;
+            
+            async function rebuildCourseSelect() {
+                const options = (window.backendCourses || []).map(c => ({ value: c.courseCode, label: c.courseName }));
+                courseSelectWrapper.innerHTML = '';
+                const placeholder = options.length ? 'Select a course' : 'No courses available';
+                const select = createCustomSelect(options, null, placeholder, async (val) => {
+                    selectedCourseCode = val;
+                    selectedSubjectId = null;
+                    // Clear subject dropdown
+                    subjectSelectWrapper.innerHTML = '';
+                    const loadingDiv = document.createElement('div');
+                    loadingDiv.className = 'subject-loading';
+                    loadingDiv.textContent = 'Loading subjects...';
+                    subjectSelectWrapper.appendChild(loadingDiv);
+                    
+                    // Fetch active subjects from backend
+                    const user = window.currentUser;
+                    if (user && selectedCourseCode) {
+                        const token = await getIdToken(user);
+                        const subjects = await fetchActiveSubjects(token, selectedCourseCode);
+                        subjectSelectWrapper.innerHTML = '';
+                        if (subjects.length === 0) {
+                            const noSubj = document.createElement('div');
+                            noSubj.className = 'subject-loading';
+                            noSubj.textContent = 'No active subjects available for this course.';
+                            subjectSelectWrapper.appendChild(noSubj);
+                            currentSubjectSelect = null;
+                        } else {
+                            const subjectOptions = subjects.map(s => ({ value: s.subjectId, label: s.subjectName }));
+                            currentSubjectSelect = createCustomSelect(subjectOptions, null, 'Select a subject', (subjId) => {
+                                selectedSubjectId = subjId;
+                            });
+                            subjectSelectWrapper.appendChild(currentSubjectSelect);
+                        }
+                    } else {
+                        subjectSelectWrapper.innerHTML = '';
+                        const msgDiv = document.createElement('div');
+                        msgDiv.className = 'subject-loading';
+                        msgDiv.textContent = 'Please select a course';
+                        subjectSelectWrapper.appendChild(msgDiv);
+                    }
+                });
+                courseSelectWrapper.appendChild(select);
+            }
+            
+            rebuildCourseSelect();
+            
+            submitBtn.addEventListener('click', async () => {
+                if (!selectedCourseCode) { showToast('Please select a course'); return; }
+                if (!selectedSubjectId) { showToast('Please select a subject'); return; }
+                const chapterName = chapterNameInp.value.trim();
+                if (!chapterName) { showToast('Chapter name is required'); return; }
+                const chapterDesc = chapterDescInp.value.trim();
+                const user = window.currentUser;
+                if (!user) { showToast('Authentication error'); return; }
+                
+                const originalText = submitBtn.textContent;
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="loading-spinner-small"></span> Creating...';
+                
+                try {
+                    const token = await getIdToken(user);
+                    const response = await fetch(`${API_BASE_URL}/create-chapter`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            tokenId: token,
+                            courseCode: selectedCourseCode,
+                            subjectID: selectedSubjectId,
+                            chapterName: chapterName,
+                            chapterDescription: chapterDesc
+                        })
+                    });
+                    const data = await response.json();
+                    if (!response.ok) throw new Error(data.error || 'Failed to create chapter');
+                    showToast(`Chapter "${chapterName}" created successfully!`, false);
+                    chapterNameInp.value = '';
+                    chapterDescInp.value = '';
+                    // Keep course and subject selections but optionally reset chapter fields
+                } catch (err) {
+                    showToast(err.message);
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalText;
+                }
+            });
+            
+            return container;
+        }
+        
+        function renderAllSections() {
+            const root = document.getElementById('forms-root');
+            if (!root) return;
+            root.innerHTML = '';
+            root.appendChild(renderCreateCourseSection());
+            root.appendChild(renderUpdateCourseSection());
+            root.appendChild(renderCreateSubjectSection());
+            root.appendChild(renderUpdateSubjectSection());
+            root.appendChild(renderCreateChapterSection());  // NEW SECTION
+        }
+        fullRefresh = renderAllSections;
+        
+        function initSmartHeader() {
+            const header = document.querySelector('header');
+            const mainEl = document.querySelector('main');
+            if (!header || !mainEl) return;
+            let lastScroll = 0;
+            let ticking = false;
+            function updatePadding() { mainEl.style.paddingTop = header.offsetHeight + 'px'; }
+            function onScroll() {
+                const scrollTop = mainEl.scrollTop;
+                if (scrollTop > lastScroll && scrollTop > 30) header.classList.add('header-hidden');
+                else if (scrollTop < lastScroll) header.classList.remove('header-hidden');
+                if (scrollTop === 0) header.classList.remove('header-hidden');
+                lastScroll = scrollTop;
+                ticking = false;
+            }
+            function requestTick() { if (!ticking) { requestAnimationFrame(onScroll); ticking = true; } }
+            updatePadding();
+            mainEl.addEventListener('scroll', requestTick);
+            window.addEventListener('resize', updatePadding);
+            new ResizeObserver(updatePadding).observe(header);
+        }
+        
+        // ---------------------- AUTH INIT ----------------------
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                window.currentUser = user;
+                try {
+                    const token = await getIdToken(user);
+                    await fetchAndStoreCourses(token);
+                    if (typeof window.startAuthenticatedApp === 'function') {
+                        await window.startAuthenticatedApp();
+                        const overlay = document.getElementById('auth-loader-overlay');
+                        if (overlay) { overlay.style.opacity = '0'; setTimeout(() => overlay.remove(), 300); }
+                    }
+                } catch (err) {
+                    console.error('Auth initialization error:', err);
+                    showToast('Failed to load user data. Please refresh.');
+                }
+            } else {
+                window.location.replace('https://nepalpathshala.github.io/ultimateSolution/auth.html');
+            }
+        });
+        
+        window.startAuthenticatedApp = async function() {
+            renderAllSections();
+            initSmartHeader();
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.custom-select-wrapper')) closeAllDropdowns();
+            });
+            document.querySelector('main').scrollTop = 0;
+        };
+    </script>
+</body>
+</html>
