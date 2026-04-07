@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>ULTIMATE SOLUTION | Quiz Practice</title>
+    <!-- Montserrat and Creepster Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Creepster&display=swap" rel="stylesheet">
+    <!-- KaTeX CSS and JS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/contrib/auto-render.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Global reset – only <main> scrolls */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden !important;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #ffffff;
+            color: #1a202c;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        /* Fixed header with smooth hide/show transition */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 50;
+            background-color: white;
+            border-bottom: 1px solid #f0f0f0;
+            transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            transform: translateY(0);
+            will-change: transform;
+        }
+
+        header.header-hidden {
+            transform: translateY(-100%);
+        }
+
+        /* Main takes remaining space and scrolls independently */
+        main {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        main::-webkit-scrollbar {
+            display: none;
+        }
+
+        .header-shadow {
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .brand-font {
+            font-family: 'Creepster', system-ui;
+        }
+        .title-underline {
+            text-decoration: underline;
+            text-decoration-thickness: 2px;
+            text-underline-offset: 6px;
+        }
+        .toast-notification {
+            transition: opacity 0.25s ease-in-out, visibility 0.25s;
+            opacity: 0;
+            visibility: hidden;
+            backdrop-filter: blur(4px);
+        }
+        .toast-notification.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        .loader {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 3rem 1rem;
+        }
+        .loader-dot {
+            width: 12px;
+            height: 12px;
+            background-color: #3182ce;
+            border-radius: 50%;
+            margin: 0 6px;
+            animation: pulse 1.2s infinite ease-in-out;
+        }
+        .loader-dot:nth-child(2) { animation-delay: 0.2s; }
+        .loader-dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes pulse {
+            0%, 100% { opacity: 0.3; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+        
+        /* Ad banner styles */
+        .ad-banner-section {
+            background-color: #eff6ff;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            transition: box-shadow 0.2s ease;
+            margin-bottom: 2rem;
+        }
+        .ad-banner-section:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        .aspect-16-9 {
+            aspect-ratio: 16 / 9;
+            width: 100%;
+        }
+        .link-decoration {
+            color: #3182ce;
+            text-decoration: underline;
+            text-decoration-thickness: 1px;
+            text-underline-offset: 4px;
+        }
+        .link-decoration:hover {
+            color: #2c5282;
+        }
+        
+        /* ========== QUESTION CARD STYLES (simplified) ========== */
+        .question-item {
+            background-color: #f1f5f9; 
+            padding: 20px 16px;
+            border-radius: 12px;
+            margin: 20px 0;
+            transition: background-color 0.2s;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        .question-item.subjective {
+            background-color: #fff7ed;
+        }
+        .q-tag {
+            display: inline-block;
+            background-color: #000000;
+            color: #ffffff;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 2px 10px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            letter-spacing: 0.05em;
+        }
+        .question-text {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #0f172a;
+            margin-bottom: 16px;
+            line-height: 1.6;
+        }
+        /* Divider between question and options */
+        .question-options-divider {
+            border-top: 1px dashed #cbd5e1;
+            margin: 16px 0 12px 0;
+        }
+        .option-container {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            margin: 8px 0;
+            border: 1px solid #cbd5e1;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            color: #1e293b;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background-color: #ffffff;
+            font-family: 'Montserrat', sans-serif;
+        }
+        .option-container:hover {
+            background-color: #f8fafc;
+            border-color: #94a3b8;
+        }
+        .option-container input {
+            margin-right: 14px;
+            accent-color: #000000;
+            pointer-events: auto;
+            width: 18px;
+            height: 18px;
+        }
+        .error-message {
+            background-color: #fee2e2;
+            border-left: 4px solid #ef4444;
+            padding: 16px;
+            margin: 20px 0;
+            border-radius: 12px;
+            color: #991b1b;
+        }
+        .info-box {
+            background-color: #dbeafe;
+            border-radius: 1rem;
+            padding: 2rem;
+            text-align: center;
+            color: #1e40af;
+        }
+        .katex {
+            font-size: 1em !important;
+            font-family: inherit;
+        }
+        .katex-display {
+            margin: 0.5em 0;
+        }
+        img {
+            max-width: 100%;
+            border-radius: 8px;
+        }
+        .chapter-title {
+            font-size: 1.875rem;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.025em;
+            text-decoration: underline;
+            text-decoration-thickness: 2px;
+            text-underline-offset: 8px;
+        }
+        .divider-custom {
+            border-top: 2px solid #e2e8f0;
+            margin: 1.5rem 0 2rem 0;
+        }
+        /* Footer navigation */
+        .quiz-nav {
+            background-color: white;
+            border-radius: 16px;
+            padding: 1rem 0;
+            margin-top: 2rem;
+            border-top: 1px solid #e2e8f0;
+        }
+        .nav-btn {
+            background-color: #1e293b;
+            transition: all 0.2s;
+        }
+        .nav-btn:hover:not(:disabled) {
+            background-color: #0f172a;
+            transform: scale(0.98);
+        }
+        .nav-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        .submit-final {
+            background-color: #059669;
+        }
+        .submit-final:hover {
+            background-color: #047857;
+        }
+        /* Back link underline and no SVG */
+        .back-link {
+            text-decoration: underline;
+            text-underline-offset: 4px;
+            font-weight: 500;
+            color: #1f2937;
+            cursor: pointer;
+        }
+        .back-link:hover {
+            color: #000000;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Fixed header: only arrow text, underlined, no redirect -->
+    <header class="header-shadow bg-white border-b border-gray-100">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+            <!-- Left side: "← Back to Main Page" (underlined, no actual redirect) -->
+            <span id="backButton" class="back-link text-md flex items-center gap-1">
+                ← Back to Main Page
+            </span>
+            <!-- Empty right side -->
+            <div></div>
+        </div>
+    </header>
+
+    <!-- Scrollable main container -->
+    <main>
+        <div class="max-w-3xl md:max-w-4xl mx-auto px-4 md:px-6 py-6">
+            <!-- Ad Banners Container -->
+            <div id="ad-banners-container"></div>
+            
+            <!-- Chapter Title (only chapter name, underlined) -->
+            <div id="chapterTitleContainer" style="margin-top: 0.5rem;">
+                <h2 id="dynamicChapterTitle" class="chapter-title">Loading...</h2>
+            </div>
+            <div class="divider-custom"></div>
+            
+            <!-- Dynamic Content Container for Single Question -->
+            <div id="dynamic-sections-container">
+                <div class="loader">
+                    <div class="loader-dot"></div>
+                    <div class="loader-dot"></div>
+                    <div class="loader-dot"></div>
+                </div>
+            </div>
+
+            <!-- Footer Navigation: Previous/Next, Question jump, Submit button (last question only) -->
+            <div id="quizFooter" class="quiz-nav" style="display: none;">
+                <div class="flex flex-wrap items-center justify-between gap-4">
+                    <div class="flex gap-2">
+                        <button id="prevBtn" class="nav-btn px-5 py-2 bg-gray-800 text-white rounded-full text-sm font-medium disabled:opacity-40">◀ Previous</button>
+                        <button id="nextBtn" class="nav-btn px-5 py-2 bg-gray-800 text-white rounded-full text-sm font-medium disabled:opacity-40">Next ▶</button>
+                    </div>
+                    <div class="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-full">
+                        <span class="text-sm font-medium text-gray-600">Question</span>
+                        <input type="number" id="questionJumpInput" class="w-16 px-2 py-1 border border-gray-300 rounded-md text-center text-sm font-semibold" min="1" step="1">
+                        <span class="text-sm text-gray-600">of <span id="totalQuestionsSpan">0</span></span>
+                    </div>
+                    <div id="submitBtnContainer"></div>
+                </div>
+                <div class="text-center text-sm text-gray-500 mt-3">
+                    Current: <span id="currentQDisplay">0</span> / <span id="totalQDisplay">0</span>
+                </div>
+            </div>
+        </div>
+
+        <footer class="py-10 bg-gray-50 mt-8 border-t border-gray-200">
+            <div class="max-w-6xl mx-auto px-4 text-center">
+                <span class="text-gray-500 font-bold tracking-widest text-sm title-underline">
+                    ©2026 ULTIMATE SOLUTION
+                </span>
+            </div>
+        </footer>
+    </main>
+
+    <div id="customToast" class="fixed bottom-6 left-1/2 transform -translate-x-1/2 md:left-auto md:right-6 md:translate-x-0 z-50 toast-notification bg-gradient-to-r from-gray-800 to-gray-900 text-white px-5 py-3 rounded-xl shadow-2xl flex items-center gap-3 font-semibold text-sm border border-gray-600">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span id="toastMessage">Info</span>
+    </div>
+
+    <script>
+        (function() {
+            // ---------- API CONFIG ----------
+            const API_BASE = "https://dilshadalmm-yosv.onrender.com";
+            const AD_BANNERS_ENDPOINT = `${API_BASE}/api/ad-banners`;
+            const QUIZ_ENDPOINT = `${API_BASE}/api/quiz`;
+
+            const adContainer = document.getElementById('ad-banners-container');
+            const dynamicContainer = document.getElementById('dynamic-sections-container');
+            const quizFooter = document.getElementById('quizFooter');
+            
+            let rawBrand = "ULTIMATE SOLUTION";
+            const brandNameForFilter = rawBrand.toUpperCase().replace(/\s+/g, '_');
+            
+            // Quiz data
+            let allQuestions = [];
+            let totalQuestions = 0;
+            let currentIndex = 0;
+            let userAnswers = [];
+            let submitted = false;
+            
+            // DOM elements for navigation
+            let prevBtn, nextBtn, jumpInput, totalQuestionsSpan, currentQDisplay, totalQDisplay, submitContainer;
+            
+            // ========== SMART STICKY HEADER ==========
+            const header = document.querySelector('header');
+            const mainScrollable = document.querySelector('main');
+            let lastScrollTop = 0;
+            let ticking = false;
+
+            function updateHeaderPadding() {
+                if (!header || !mainScrollable) return;
+                const headerHeight = header.offsetHeight;
+                mainScrollable.style.paddingTop = headerHeight + 'px';
+            }
+
+            function handleMainScroll() {
+                if (!header || !mainScrollable) return;
+                const currentScrollTop = mainScrollable.scrollTop;
+                if (currentScrollTop > lastScrollTop && currentScrollTop > 30) {
+                    header.classList.add('header-hidden');
+                } 
+                else if (currentScrollTop < lastScrollTop && currentScrollTop >= 0) {
+                    header.classList.remove('header-hidden');
+                }
+                if (currentScrollTop === 0) {
+                    header.classList.remove('header-hidden');
+                }
+                lastScrollTop = currentScrollTop;
+                ticking = false;
+            }
+
+            function onMainScroll() {
+                if (!ticking) {
+                    requestAnimationFrame(handleMainScroll);
+                    ticking = true;
+                }
+            }
+
+            function initSmartHeader() {
+                updateHeaderPadding();
+                mainScrollable.addEventListener('scroll', onMainScroll);
+                window.addEventListener('resize', () => updateHeaderPadding());
+                const resizeObserver = new ResizeObserver(() => updateHeaderPadding());
+                resizeObserver.observe(header);
+            }
+            
+            // Back button: do nothing (no redirect) but keep underline style
+            document.getElementById('backButton')?.addEventListener('click', (e) => {
+                e.preventDefault();
+                // No redirect – just optional toast or silent
+                showToast("Stay on current page", false);
+            });
+            
+            // ========== Helper: toast ==========
+            function showToast(message, isError = false) {
+                const toastEl = document.getElementById('customToast');
+                const messageSpan = document.getElementById('toastMessage');
+                if (!toastEl) return;
+                if (messageSpan) messageSpan.innerText = message;
+                if (isError) {
+                    toastEl.classList.remove('bg-gradient-to-r', 'from-gray-800', 'to-gray-900');
+                    toastEl.classList.add('bg-gradient-to-r', 'from-red-600', 'to-red-700');
+                } else {
+                    toastEl.classList.remove('bg-gradient-to-r', 'from-red-600', 'to-red-700');
+                    toastEl.classList.add('bg-gradient-to-r', 'from-gray-800', 'to-gray-900');
+                }
+                toastEl.classList.remove('show');
+                void toastEl.offsetWidth;
+                toastEl.classList.add('show');
+                setTimeout(() => {
+                    toastEl.classList.remove('show');
+                }, 2500);
+            }
+
+            // ========== AD BANNERS ==========
+            function createAdBannerSection(item) {
+                const { titleText = "Special Offer", imageUrl = "", linkText = "Learn More", linkAddress = "#" } = item;
+                const section = document.createElement('section');
+                section.className = "mb-8 ad-banner-section";
+                const titleEl = document.createElement('h2');
+                titleEl.textContent = titleText;
+                titleEl.className = "text-2xl font-extrabold text-gray-900 mb-3 tracking-tight uppercase title-underline";
+                const imageContainer = document.createElement('div');
+                imageContainer.className = "aspect-16-9 bg-gray-100 rounded-lg overflow-hidden border border-gray-200 shadow-sm mb-5";
+                const img = document.createElement('img');
+                img.src = imageUrl && imageUrl.trim() !== "" ? imageUrl : "https://images.unsplash.com/photo-1581091226033-d5c48150dbaa?q=80&w=1200&auto=format&fit=crop";
+                img.alt = titleText;
+                img.className = "w-full h-full object-cover";
+                img.loading = "lazy";
+                imageContainer.appendChild(img);
+                const linkEl = document.createElement('a');
+                linkEl.textContent = linkText;
+                linkEl.className = "link-decoration text-lg font-medium inline-block";
+                linkEl.href = linkAddress && linkAddress !== "#" ? linkAddress : "javascript:void(0)";
+                linkEl.target = "_blank";
+                linkEl.rel = "noopener noreferrer";
+                if (!linkAddress || linkAddress === "#") {
+                    linkEl.addEventListener('click', (e) => { e.preventDefault(); showToast("Link coming soon"); });
+                }
+                section.appendChild(titleEl);
+                section.appendChild(imageContainer);
+                section.appendChild(linkEl);
+                return section;
+            }
+            
+            async function renderAdBanners(container) {
+                if (!container) return;
+                container.innerHTML = '';
+                try {
+                    const url = `${AD_BANNERS_ENDPOINT}?brandName=${encodeURIComponent(brandNameForFilter)}`;
+                    const response = await fetch(url);
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    const result = await response.json();
+                    if (!result || result.success !== true || !Array.isArray(result.data)) return;
+                    let banners = result.data.filter(b => b.brandName === brandNameForFilter);
+                    banners.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+                    if (banners.length === 0) return;
+                    banners.forEach(banner => { container.appendChild(createAdBannerSection(banner)); });
+                } catch (err) { console.error(err); }
+            }
+            
+            // ========== KATEX RENDER ==========
+            function renderMathInElementWithDelay(element) {
+                if (!element) return;
+                const tryRender = () => {
+                    if (typeof renderMathInElement === 'function') {
+                        try {
+                            renderMathInElement(element, {
+                                delimiters: [
+                                    {left: '$$', right: '$$', display: true},
+                                    {left: '$', right: '$', display: false},
+                                    {left: '\\(', right: '\\)', display: false},
+                                    {left: '\\[', right: '\\]', display: true}
+                                ],
+                                throwOnError: false,
+                                errorColor: '#cc0000'
+                            });
+                        } catch (e) { console.warn(e); }
+                    } else {
+                        setTimeout(tryRender, 150);
+                    }
+                };
+                tryRender();
+            }
+            
+            function replaceNewlinesWithBr(text) {
+                if (!text) return text;
+                return text.replace(/\r?\n/g, '<br>');
+            }
+            
+            // ========== RENDER SINGLE QUESTION (with divider between question text and options) ==========
+            function renderSingleQuestion(question, qIndex) {
+                const formattedQuestionText = replaceNewlinesWithBr(question.questionText);
+                const formattedOptions = question.options ? question.options.map(opt => replaceNewlinesWithBr(opt)) : [];
+                const questionType = question.questionType || 'Objective';
+                const isSubjective = (questionType === 'Subjective');
+                
+                const questionDiv = document.createElement('div');
+                questionDiv.className = 'question-item';
+                if (isSubjective) questionDiv.classList.add('subjective');
+                questionDiv.id = `question-card-${qIndex}`;
+                
+                const qTag = document.createElement('div');
+                qTag.className = 'q-tag';
+                qTag.textContent = `Question ${qIndex+1} ${isSubjective ? '(Subjective)' : '(MCQ)'}`;
+                
+                const qText = document.createElement('div');
+                qText.className = 'question-text';
+                qText.innerHTML = formattedQuestionText;
+                questionDiv.appendChild(qTag);
+                questionDiv.appendChild(qText);
+                
+                if (question.questionImageUrl) {
+                    const img = document.createElement('img');
+                    img.src = question.questionImageUrl;
+                    img.alt = 'Question illustration';
+                    img.style.maxWidth = '100%';
+                    img.style.marginBottom = '16px';
+                    img.style.borderRadius = '8px';
+                    questionDiv.appendChild(img);
+                }
+                
+                // Divider line (question vs options)
+                const divider = document.createElement('div');
+                divider.className = 'question-options-divider';
+                questionDiv.appendChild(divider);
+                
+                if (!isSubjective && formattedOptions.length > 0) {
+                    const optionsDiv = document.createElement('div');
+                    optionsDiv.className = 'options-list';
+                    const storedAnswer = userAnswers[qIndex] !== undefined ? userAnswers[qIndex] : null;
+                    
+                    formattedOptions.forEach((opt, optIdx) => {
+                        const label = document.createElement('label');
+                        label.className = 'option-container';
+                        const radio = document.createElement('input');
+                        radio.type = 'radio';
+                        radio.name = `current_question`;
+                        radio.value = optIdx;
+                        if (storedAnswer === optIdx) radio.checked = true;
+                        radio.addEventListener('change', (e) => {
+                            if (e.target.checked) {
+                                userAnswers[qIndex] = optIdx;
+                            }
+                        });
+                        const span = document.createElement('span');
+                        span.innerHTML = opt;
+                        label.appendChild(radio);
+                        label.appendChild(span);
+                        optionsDiv.appendChild(label);
+                    });
+                    questionDiv.appendChild(optionsDiv);
+                } else if (isSubjective) {
+                    const note = document.createElement('div');
+                    note.className = 'text-sm text-gray-500 italic bg-white p-3 rounded-lg mt-2';
+                    note.textContent = '📝 Subjective question — review and think critically.';
+                    questionDiv.appendChild(note);
+                }
+                
+                renderMathInElementWithDelay(questionDiv);
+                return questionDiv;
+            }
+            
+            function refreshCurrentQuestion() {
+                if (!allQuestions.length) return;
+                dynamicContainer.innerHTML = '';
+                const q = allQuestions[currentIndex];
+                const questionElement = renderSingleQuestion(q, currentIndex);
+                dynamicContainer.appendChild(questionElement);
+                updateNavButtons();
+                updateJumpAndDisplay();
+                updateSubmitButtonVisibility();
+                dynamicContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+            
+            function updateNavButtons() {
+                if (!prevBtn || !nextBtn) return;
+                prevBtn.disabled = (currentIndex === 0);
+                nextBtn.disabled = (currentIndex === totalQuestions - 1);
+            }
+            
+            function updateJumpAndDisplay() {
+                if (jumpInput) jumpInput.value = currentIndex + 1;
+                if (currentQDisplay) currentQDisplay.textContent = currentIndex + 1;
+                if (totalQDisplay) totalQDisplay.textContent = totalQuestions;
+                if (totalQuestionsSpan) totalQuestionsSpan.textContent = totalQuestions;
+                if (jumpInput) jumpInput.max = totalQuestions;
+            }
+            
+            function updateSubmitButtonVisibility() {
+                if (!submitContainer) return;
+                if (currentIndex === totalQuestions - 1 && totalQuestions > 0) {
+                    if (!submitContainer.querySelector('#finalSubmitBtn')) {
+                        const submitBtn = document.createElement('button');
+                        submitBtn.id = 'finalSubmitBtn';
+                        submitBtn.textContent = '✅ Submit Quiz';
+                        submitBtn.className = 'submit-final px-6 py-2 bg-green-600 text-white rounded-full text-sm font-bold shadow-md hover:shadow-lg transition-all';
+                        submitBtn.onclick = () => finalizeQuiz();
+                        submitContainer.innerHTML = '';
+                        submitContainer.appendChild(submitBtn);
+                    }
+                } else {
+                    submitContainer.innerHTML = '';
+                }
+            }
+            
+            function finalizeQuiz() {
+                if (submitted) {
+                    showToast("Quiz already submitted! Reload to retry.", false);
+                    return;
+                }
+                let objectiveCount = 0;
+                let correctCount = 0;
+                for (let i = 0; i < allQuestions.length; i++) {
+                    const q = allQuestions[i];
+                    if (q.questionType !== 'Subjective' && q.correctIndex !== undefined) {
+                        objectiveCount++;
+                        const userOpt = userAnswers[i];
+                        if (userOpt !== undefined && userOpt === q.correctIndex) {
+                            correctCount++;
+                        }
+                    }
+                }
+                const percentage = objectiveCount > 0 ? Math.round((correctCount / objectiveCount) * 100) : 0;
+                showToast(`🎯 Score: ${correctCount} / ${objectiveCount} (${percentage}%)`, false);
+                submitted = true;
+                const finalBtn = document.getElementById('finalSubmitBtn');
+                if (finalBtn) {
+                    finalBtn.disabled = true;
+                    finalBtn.textContent = '✓ Submitted';
+                    finalBtn.classList.remove('bg-green-600');
+                    finalBtn.classList.add('bg-gray-500');
+                }
+            }
+            
+            // ========== FETCH ALL QUESTIONS (PAGINATED) ==========
+            async function fetchAllQuestions(className, subject, chapter) {
+                let all = [];
+                let cursor = null;
+                let hasMore = true;
+                let page = 0;
+                while (hasMore) {
+                    const params = new URLSearchParams({
+                        className: className,
+                        subject: subject,
+                        chapter: chapter,
+                        limit: 50
+                    });
+                    if (cursor) params.append('cursor', cursor);
+                    const response = await fetch(`${QUIZ_ENDPOINT}?${params.toString()}`);
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    const data = await response.json();
+                    if (!data.success) throw new Error(data.error || 'Failed to fetch');
+                    all = all.concat(data.questions);
+                    hasMore = data.hasMore === true;
+                    cursor = data.nextCursor !== undefined && data.nextCursor !== null ? String(data.nextCursor) : null;
+                    page++;
+                    if (page > 20) break;
+                }
+                return all;
+            }
+            
+            // ========== INITIALIZATION ==========
+            async function init() {
+                initSmartHeader();
+                renderAdBanners(adContainer).catch(e => console.warn(e));
+                
+                const urlParams = new URLSearchParams(window.location.search);
+                const className = urlParams.get('className');
+                const subject = urlParams.get('subject');
+                const chapter = urlParams.get('chapter');
+                
+                if (!className || !subject || !chapter) {
+                    showErrorMsg("Missing parameters. Please provide className, subject, and chapter in the URL.");
+                    return;
+                }
+                
+                const decodedClass = decodeURIComponent(className);
+                const decodedSubject = decodeURIComponent(subject);
+                const decodedChapter = decodeURIComponent(chapter);
+                
+                const chapterTitleEl = document.getElementById('dynamicChapterTitle');
+                if (chapterTitleEl) chapterTitleEl.textContent = decodedChapter;
+                
+                dynamicContainer.innerHTML = `<div class="loader"><div class="loader-dot"></div><div class="loader-dot"></div><div class="loader-dot"></div></div>`;
+                
+                try {
+                    allQuestions = await fetchAllQuestions(decodedClass, decodedSubject, decodedChapter);
+                    totalQuestions = allQuestions.length;
+                    if (totalQuestions === 0) {
+                        dynamicContainer.innerHTML = `<div class="info-box">No questions available for this chapter.</div>`;
+                        quizFooter.style.display = 'none';
+                        return;
+                    }
+                    userAnswers = new Array(totalQuestions).fill(null);
+                    currentIndex = 0;
+                    quizFooter.style.display = 'block';
+                    
+                    prevBtn = document.getElementById('prevBtn');
+                    nextBtn = document.getElementById('nextBtn');
+                    jumpInput = document.getElementById('questionJumpInput');
+                    totalQuestionsSpan = document.getElementById('totalQuestionsSpan');
+                    currentQDisplay = document.getElementById('currentQDisplay');
+                    totalQDisplay = document.getElementById('totalQDisplay');
+                    submitContainer = document.getElementById('submitBtnContainer');
+                    
+                    prevBtn.onclick = () => { if (currentIndex > 0) { currentIndex--; refreshCurrentQuestion(); } };
+                    nextBtn.onclick = () => { if (currentIndex < totalQuestions-1) { currentIndex++; refreshCurrentQuestion(); } };
+                    jumpInput.addEventListener('change', (e) => {
+                        let val = parseInt(e.target.value);
+                        if (isNaN(val)) val = 1;
+                        val = Math.min(Math.max(val, 1), totalQuestions);
+                        currentIndex = val - 1;
+                        refreshCurrentQuestion();
+                    });
+                    
+                    refreshCurrentQuestion();
+                } catch (err) {
+                    console.error(err);
+                    dynamicContainer.innerHTML = `<div class="error-message">Failed to load questions: ${err.message}</div>`;
+                    quizFooter.style.display = 'none';
+                }
+            }
+            
+            function showErrorMsg(msg) {
+                dynamicContainer.innerHTML = `<div class="error-message">${msg}</div>`;
+                quizFooter.style.display = 'none';
+                const titleEl = document.getElementById('dynamicChapterTitle');
+                if (titleEl) titleEl.textContent = 'Error';
+            }
+            
+            init();
+        })();
+    </script>
+</body>
+</html>
