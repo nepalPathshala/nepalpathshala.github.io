@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>ULTIMATE SOLUTION | Quiz Practice</title>
+    <!-- Montserrat and Creepster Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Creepster&display=swap" rel="stylesheet">
+    <!-- KaTeX CSS and JS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/contrib/auto-render.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Global reset – only <main> scrolls */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden !important;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #ffffff;
+            color: #1a202c;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        /* Fixed header with smooth hide/show transition */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 50;
+            background-color: white;
+            border-bottom: 1px solid #f0f0f0;
+            transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            transform: translateY(0);
+            will-change: transform;
+        }
+
+        header.header-hidden {
+            transform: translateY(-100%);
+        }
+
+        /* Main takes remaining space and scrolls independently */
+        main {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        main::-webkit-scrollbar {
+            display: none;
+        }
+
+        .header-shadow {
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .brand-font {
+            font-family: 'Creepster', system-ui;
+        }
+        .title-underline {
+            text-decoration: underline;
+            text-decoration-thickness: 2px;
+            text-underline-offset: 6px;
+        }
+        .toast-notification {
+            transition: opacity 0.25s ease-in-out, visibility 0.25s;
+            opacity: 0;
+            visibility: hidden;
+            backdrop-filter: blur(4px);
+        }
+        .toast-notification.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        .loader {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 3rem 1rem;
+        }
+        .loader-dot {
+            width: 12px;
+            height: 12px;
+            background-color: #3182ce;
+            border-radius: 50%;
+            margin: 0 6px;
+            animation: pulse 1.2s infinite ease-in-out;
+        }
+        .loader-dot:nth-child(2) { animation-delay: 0.2s; }
+        .loader-dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes pulse {
+            0%, 100% { opacity: 0.3; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+        
+        /* Ad banner styles */
+        .ad-banner-section {
+            background-color: #eff6ff;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            transition: box-shadow 0.2s ease;
+            margin-bottom: 2rem;
+        }
+        .ad-banner-section:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        .aspect-16-9 {
+            aspect-ratio: 16 / 9;
+            width: 100%;
+        }
+        .link-decoration {
+            color: #3182ce;
+            text-decoration: underline;
+            text-decoration-thickness: 1px;
+            text-underline-offset: 4px;
+        }
+        .link-decoration:hover {
+            color: #2c5282;
+        }
+        
+        /* ========== QUESTION CARD STYLES (from quiz.html) ========== */
+        .question-item {
+            background-color: #f1f5f9; 
+            padding: 16px 12px;
+            border-radius: 4px;
+            margin: 20px 0;
+            transition: background-color 0.2s;
+        }
+        .question-item.subjective {
+            background-color: #ffe4e1;
+        }
+        .q-tag {
+            display: inline-block;
+            background-color: #000000;
+            color: #ffffff;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            letter-spacing: 0.05em;
+        }
+        .question-text {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 12px;
+            line-height: 1.5;
+        }
+        .option-container {
+            display: flex;
+            align-items: center;
+            padding: 10px 14px;
+            margin: 6px 0;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            color: #334155;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background-color: #ffffff;
+            font-family: 'Montserrat', sans-serif;
+        }
+        .option-container:hover {
+            background-color: #f8fafc;
+            border-color: #94a3b8;
+        }
+        .option-container input {
+            margin-right: 12px;
+            accent-color: #000000;
+            pointer-events: auto;
+        }
+        .option-container.correct-bg {
+            background-color: #d1fae5;
+            border-color: #10b981;
+        }
+        .option-container.wrong-bg {
+            background-color: #fee2e2;
+            border-color: #ef4444;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+        .action-btn {
+            background-color: #334155;
+            color: white;
+            padding: 6px 14px;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            transition: opacity 0.2s;
+            font-family: 'Montserrat', sans-serif;
+        }
+        .action-btn:hover {
+            opacity: 0.9;
+        }
+        .action-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .submit-btn {
+            background-color: #059669;
+        }
+        .text-solution-btn, .video-solution-btn {
+            background-color: #4b5563;
+        }
+        .solution-container {
+            margin-top: 12px;
+            display: none;
+        }
+        .solution-container.visible {
+            display: block;
+        }
+        .solution-box {
+            padding: 12px;
+            background-color: #ecfdf5;
+            border-left: 4px solid #10b981;
+            font-size: 0.85rem;
+            color: #065f46;
+            border-radius: 4px;
+            font-family: 'Montserrat', sans-serif;
+        }
+        .video-container {
+            margin-top: 12px;
+            width: 100%;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .video-container iframe,
+        .video-container video {
+            width: 100%;
+            max-width: 100%;
+            border-radius: 4px;
+            display: block;
+        }
+        .correct-answer-box {
+            margin-top: 12px;
+            padding: 12px;
+            background-color: #fef9c3;
+            border-left: 4px solid #eab308;
+            font-size: 0.85rem;
+            color: #854d0e;
+            border-radius: 4px;
+            display: none;
+            font-family: 'Montserrat', sans-serif;
+        }
+        .correct-answer-box.visible {
+            display: flex;
+            align-items: baseline;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .correct-answer-label {
+            font-weight: 700;
+        }
+        .error-message {
+            background-color: #fee2e2;
+            border-left: 4px solid #ef4444;
+            padding: 12px;
+            margin: 20px 0;
+            border-radius: 4px;
+            color: #991b1b;
+        }
+        .info-box {
+            background-color: #dbeafe;
+            border-radius: 1rem;
+            padding: 2rem;
+            text-align: center;
+            color: #1e40af;
+        }
+        .infinite-loader {
+            text-align: center;
+            padding: 20px;
+            font-size: 0.85rem;
+            color: #6b7280;
+        }
+        .katex {
+            font-size: 1em !important;
+            font-family: inherit;
+        }
+        .katex-display {
+            margin: 0.5em 0;
+        }
+        img {
+            max-width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Fixed header (smart sticky) -->
+    <header class="header-shadow bg-white border-b border-gray-100">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+            <div class="bg-black px-4 py-2 rounded-md">
+                <h1 id="brandHeaderText" class="brand-font text-white text-2xl tracking-wider whitespace-nowrap">
+                    ULTIMATE SOLUTION
+                </h1>
+            </div>
+            <div class="flex items-center space-x-3">
+                <div class="p-2 text-blue-500 bg-blue-50 rounded-md cursor-pointer hover:bg-blue-100 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </div>
+                <div class="p-2 text-white bg-blue-500 rounded-md cursor-pointer hover:bg-blue-600 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Scrollable main container -->
+    <main>
+        <div class="max-w-3xl md:max-w-6xl mx-auto px-4 md:px-6 py-8">
+            <!-- Ad Banners Container -->
+            <div id="ad-banners-container"></div>
+            
+            <!-- Title & Subtle (static but informative) -->
+            <div id="quizHeaderInfo" style="margin-bottom: 1rem;">
+                <h2 id="dynamicTitle" class="note-title">Practice Questions</h2>
+                <p id="dynamicSubtle" class="note-subtle">Test your knowledge with interactive MCQs & subjective questions</p>
+            </div>
+            
+            <!-- Dynamic Content Container for Questions -->
+            <div id="dynamic-sections-container">
+                <div class="loader">
+                    <div class="loader-dot"></div>
+                    <div class="loader-dot"></div>
+                    <div class="loader-dot"></div>
+                </div>
+            </div>
+            <div id="infiniteLoader" class="infinite-loader" style="display: none;">Loading more questions...</div>
+        </div>
+
+        <footer class="py-12 bg-gray-50 mt-16 border-t border-gray-200">
+            <div class="max-w-6xl mx-auto px-4 text-center">
+                <span class="text-gray-500 font-bold tracking-widest text-sm title-underline">
+                    ©2026 ULTIMATE SOLUTION
+                </span>
+            </div>
+        </footer>
+    </main>
+
+    <div id="customToast" class="fixed bottom-6 left-1/2 transform -translate-x-1/2 md:left-auto md:right-6 md:translate-x-0 z-50 toast-notification bg-gradient-to-r from-red-600 to-red-700 text-white px-6 py-3 rounded-xl shadow-2xl flex items-center gap-3 font-semibold text-base border border-red-400">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span id="toastMessage">Error loading questions</span>
+    </div>
+
+    <script>
+        (function() {
+            // ---------- API CONFIG ----------
+            const API_BASE = "https://dilshadalmm-yosv.onrender.com";
+            const AD_BANNERS_ENDPOINT = `${API_BASE}/api/ad-banners`;
+            const QUIZ_ENDPOINT = `${API_BASE}/api/quiz`;
+
+            const adContainer = document.getElementById('ad-banners-container');
+            const dynamicContainer = document.getElementById('dynamic-sections-container');
+            const infiniteLoaderDiv = document.getElementById('infiniteLoader');
+            
+            let rawBrand = "ULTIMATE SOLUTION";
+            const brandNameForFilter = rawBrand.toUpperCase().replace(/\s+/g, '_');
+            
+            // Quiz state
+            let currentCursor = null;
+            let hasMore = true;
+            let isLoading = false;
+            let currentClass = '';
+            let currentSubject = '';
+            let currentChapter = '';
+            
+            // ========== SMART STICKY HEADER (fixed) ==========
+            const header = document.querySelector('header');
+            const mainScrollable = document.querySelector('main');
+            let lastScrollTop = 0;
+            let ticking = false;
+
+            function updateHeaderPadding() {
+                if (!header || !mainScrollable) return;
+                const headerHeight = header.offsetHeight;
+                mainScrollable.style.paddingTop = headerHeight + 'px';
+            }
+
+            function handleMainScroll() {
+                if (!header || !mainScrollable) return;
+                const currentScrollTop = mainScrollable.scrollTop;
+                if (currentScrollTop > lastScrollTop && currentScrollTop > 30) {
+                    header.classList.add('header-hidden');
+                } 
+                else if (currentScrollTop < lastScrollTop && currentScrollTop >= 0) {
+                    header.classList.remove('header-hidden');
+                }
+                if (currentScrollTop === 0) {
+                    header.classList.remove('header-hidden');
+                }
+                lastScrollTop = currentScrollTop;
+                ticking = false;
+            }
+
+            function onMainScroll() {
+                if (!ticking) {
+                    requestAnimationFrame(handleMainScroll);
+                    ticking = true;
+                }
+            }
+
+            function initSmartHeader() {
+                updateHeaderPadding();
+                mainScrollable.addEventListener('scroll', onMainScroll);
+                window.addEventListener('resize', () => updateHeaderPadding());
+                const resizeObserver = new ResizeObserver(() => updateHeaderPadding());
+                resizeObserver.observe(header);
+            }
+            
+            // ========== Helper: toast ==========
+            function showToast(message = "Something went wrong") {
+                const toastEl = document.getElementById('customToast');
+                const messageSpan = document.getElementById('toastMessage');
+                if (!toastEl) return;
+                if (messageSpan) messageSpan.innerText = message;
+                toastEl.classList.remove('show');
+                void toastEl.offsetWidth;
+                toastEl.classList.add('show');
+                setTimeout(() => {
+                    toastEl.classList.remove('show');
+                }, 2300);
+            }
+
+            // ========== Loading / Error UI ==========
+            function showLoading() {
+                if (!dynamicContainer) return;
+                dynamicContainer.innerHTML = `
+                    <div class="loader">
+                        <div class="loader-dot"></div>
+                        <div class="loader-dot"></div>
+                        <div class="loader-dot"></div>
+                    </div>
+                `;
+            }
+            
+            function showError(message) {
+                if (!dynamicContainer) return;
+                dynamicContainer.innerHTML = `
+                    <div class="error-message">
+                        <svg class="w-8 h-8 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span class="font-semibold">${message}</span>
+                    </div>
+                `;
+            }
+            
+            function showInfo(message) {
+                if (!dynamicContainer) return;
+                dynamicContainer.innerHTML = `<div class="info-box"><p class="font-semibold text-lg">${message}</p></div>`;
+            }
+
+            // ========== AD BANNERS (unchanged) ==========
+            function createAdBannerSection(item) {
+                const { titleText = "Special Offer", imageUrl = "", linkText = "Learn More", linkAddress = "#", order = 0 } = item;
+                const section = document.createElement('section');
+                section.className = "mb-8 ad-banner-section";
+                const titleEl = document.createElement('h2');
+                titleEl.textContent = titleText;
+                titleEl.className = "text-3xl font-extrabold text-gray-900 mb-4 tracking-tight leading-tight uppercase title-underline";
+                const imageContainer = document.createElement('div');
+                imageContainer.className = "aspect-16-9 bg-gray-100 rounded-lg overflow-hidden border border-gray-200 shadow-sm mb-6";
+                const img = document.createElement('img');
+                img.src = imageUrl && imageUrl.trim() !== "" ? imageUrl : "https://images.unsplash.com/photo-1581091226033-d5c48150dbaa?q=80&w=1200&auto=format&fit=crop";
+                img.alt = titleText;
+                img.className = "w-full h-full object-cover";
+                img.loading = "lazy";
+                img.onerror = function() { if (!this.src.includes('placeholder-medical')) this.src = "https://images.unsplash.com/photo-1581091226033-d5c48150dbaa?q=80&w=1200&auto=format&fit=crop"; };
+                imageContainer.appendChild(img);
+                const linkEl = document.createElement('a');
+                linkEl.textContent = linkText;
+                linkEl.className = "link-decoration text-xl font-medium inline-block";
+                linkEl.href = linkAddress && linkAddress !== "#" ? linkAddress : "javascript:void(0)";
+                linkEl.target = "_blank";
+                linkEl.rel = "noopener noreferrer";
+                if (!linkAddress || linkAddress === "#") {
+                    linkEl.addEventListener('click', (e) => { e.preventDefault(); showToast("Link coming soon"); });
+                }
+                section.appendChild(titleEl);
+                section.appendChild(imageContainer);
+                section.appendChild(linkEl);
+                return section;
+            }
+            
+            async function renderAdBanners(container) {
+                if (!container) return;
+                container.innerHTML = '';
+                const loaderDiv = document.createElement('div');
+                loaderDiv.className = 'loader';
+                for (let i = 0; i < 3; i++) { const dot = document.createElement('div'); dot.className = 'loader-dot'; loaderDiv.appendChild(dot); }
+                container.appendChild(loaderDiv);
+                try {
+                    const url = `${AD_BANNERS_ENDPOINT}?brandName=${encodeURIComponent(brandNameForFilter)}`;
+                    const response = await fetch(url);
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    const result = await response.json();
+                    if (!result || result.success !== true || !Array.isArray(result.data)) { container.innerHTML = ''; return; }
+                    let banners = result.data.filter(b => b.brandName === brandNameForFilter);
+                    banners.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+                    if (banners.length === 0) { container.innerHTML = ''; return; }
+                    container.innerHTML = '';
+                    banners.forEach(banner => { container.appendChild(createAdBannerSection(banner)); });
+                } catch (err) { console.error(err); container.innerHTML = ''; }
+            }
+            
+            // ========== KATEX & VIDEO HELPERS (from quiz.html) ==========
+            function getYouTubeEmbedUrl(url) {
+                if (!url) return null;
+                const patterns = [
+                    /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&?#]+)/,
+                    /youtube\.com\/embed\/([^?]+)/
+                ];
+                for (let pattern of patterns) {
+                    const match = url.match(pattern);
+                    if (match && match[1]) return `https://www.youtube.com/embed/${match[1]}`;
+                }
+                return null;
+            }
+            
+            function createVideoElement(url) {
+                if (!url) return null;
+                const container = document.createElement('div');
+                container.className = 'video-container';
+                const youtubeEmbed = getYouTubeEmbedUrl(url);
+                if (youtubeEmbed) {
+                    const iframe = document.createElement('iframe');
+                    iframe.src = youtubeEmbed;
+                    iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+                    iframe.allowFullscreen = true;
+                    iframe.frameBorder = '0';
+                    iframe.style.width = '100%';
+                    iframe.style.aspectRatio = '16/9';
+                    container.appendChild(iframe);
+                } else if (url.match(/\.(mp4|webm|ogg)$/i)) {
+                    const video = document.createElement('video');
+                    video.controls = true;
+                    video.preload = 'metadata';
+                    video.style.width = '100%';
+                    const source = document.createElement('source');
+                    source.src = url;
+                    source.type = 'video/mp4';
+                    video.appendChild(source);
+                    container.appendChild(video);
+                } else {
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.textContent = 'Watch video';
+                    link.target = '_blank';
+                    link.style.color = '#065f46';
+                    link.style.textDecoration = 'underline';
+                    container.appendChild(link);
+                }
+                return container;
+            }
+            
+            function renderMathInElementWithDelay(element) {
+                if (!element) return;
+                const tryRender = () => {
+                    if (typeof renderMathInElement === 'function') {
+                        try {
+                            renderMathInElement(element, {
+                                delimiters: [
+                                    {left: '$$', right: '$$', display: true},
+                                    {left: '$', right: '$', display: false},
+                                    {left: '\\(', right: '\\)', display: false},
+                                    {left: '\\[', right: '\\]', display: true}
+                                ],
+                                throwOnError: false,
+                                errorColor: '#cc0000'
+                            });
+                        } catch (e) { console.warn('KaTeX error:', e); }
+                    } else {
+                        setTimeout(tryRender, 150);
+                    }
+                };
+                tryRender();
+            }
+            
+            function replaceNewlinesWithBr(text) {
+                if (!text) return text;
+                return text.replace(/\r?\n/g, '<br>');
+            }
+            
+            // ========== CREATE QUESTION CARD (fully interactive) ==========
+            function createQuestionElement(q, globalIndex) {
+                const formattedQuestionText = replaceNewlinesWithBr(q.questionText);
+                const formattedOptions = q.options ? q.options.map(opt => replaceNewlinesWithBr(opt)) : [];
+                const formattedSolutionText = q.solutionText ? replaceNewlinesWithBr(q.solutionText) : null;
+                const questionType = q.questionType || 'Objective';
+                const isSubjective = (questionType === 'Subjective');
+                
+                const questionDiv = document.createElement('div');
+                questionDiv.className = 'question-item';
+                if (isSubjective) questionDiv.classList.add('subjective');
+                
+                const qTag = document.createElement('div');
+                qTag.className = 'q-tag';
+                qTag.textContent = `Question ${globalIndex} ${isSubjective ? '(Subjective)' : '(Objective)'}`;
+                
+                const qText = document.createElement('div');
+                qText.className = 'question-text';
+                qText.innerHTML = formattedQuestionText;
+                questionDiv.appendChild(qTag);
+                questionDiv.appendChild(qText);
+                
+                if (q.questionImageUrl) {
+                    const img = document.createElement('img');
+                    img.src = q.questionImageUrl;
+                    img.alt = 'Question illustration';
+                    img.style.maxWidth = '100%';
+                    img.style.marginBottom = '12px';
+                    img.style.borderRadius = '4px';
+                    questionDiv.appendChild(img);
+                }
+                
+                let optionsDiv = null;
+                let optionContainers = [];
+                let submitBtn = null;
+                let correctAnswerBox = null;
+                
+                if (!isSubjective) {
+                    optionsDiv = document.createElement('div');
+                    optionsDiv.className = 'options-list';
+                    formattedOptions.forEach((opt, optIdx) => {
+                        const label = document.createElement('label');
+                        label.className = 'option-container';
+                        const radio = document.createElement('input');
+                        radio.type = 'radio';
+                        radio.name = `q_${globalIndex}`;
+                        radio.value = optIdx;
+                        const span = document.createElement('span');
+                        span.innerHTML = opt;
+                        label.appendChild(radio);
+                        label.appendChild(span);
+                        optionsDiv.appendChild(label);
+                        optionContainers.push(label);
+                    });
+                    questionDiv.appendChild(optionsDiv);
+                }
+                
+                const actionRow = document.createElement('div');
+                actionRow.className = 'action-buttons';
+                const textSolutionBtn = document.createElement('button');
+                textSolutionBtn.textContent = 'Text Solution';
+                textSolutionBtn.className = 'action-btn text-solution-btn';
+                const videoSolutionBtn = document.createElement('button');
+                videoSolutionBtn.textContent = 'Video Solution';
+                videoSolutionBtn.className = 'action-btn video-solution-btn';
+                
+                if (!isSubjective) {
+                    submitBtn = document.createElement('button');
+                    submitBtn.textContent = 'Submit';
+                    submitBtn.className = 'action-btn submit-btn';
+                    actionRow.appendChild(submitBtn);
+                }
+                actionRow.appendChild(textSolutionBtn);
+                actionRow.appendChild(videoSolutionBtn);
+                questionDiv.appendChild(actionRow);
+                
+                if (!isSubjective) {
+                    correctAnswerBox = document.createElement('div');
+                    correctAnswerBox.className = 'correct-answer-box';
+                    const correctLabel = document.createElement('span');
+                    correctLabel.className = 'correct-answer-label';
+                    correctLabel.textContent = 'Correct Answer:';
+                    const correctAnswerSpan = document.createElement('span');
+                    correctAnswerSpan.innerHTML = formattedOptions[q.correctIndex] || 'N/A';
+                    correctAnswerBox.appendChild(correctLabel);
+                    correctAnswerBox.appendChild(correctAnswerSpan);
+                    questionDiv.appendChild(correctAnswerBox);
+                }
+                
+                const textSolutionContainer = document.createElement('div');
+                textSolutionContainer.id = `text-solution-${globalIndex}`;
+                textSolutionContainer.className = 'solution-container';
+                if (formattedSolutionText) {
+                    const textBox = document.createElement('div');
+                    textBox.className = 'solution-box';
+                    const solutionPara = document.createElement('p');
+                    solutionPara.innerHTML = formattedSolutionText;
+                    textBox.appendChild(solutionPara);
+                    if (q.solutionImageUrl) {
+                        const img = document.createElement('img');
+                        img.src = q.solutionImageUrl;
+                        img.alt = 'Solution illustration';
+                        img.style.maxWidth = '100%';
+                        img.style.marginTop = '10px';
+                        img.style.borderRadius = '4px';
+                        textBox.appendChild(img);
+                    }
+                    textSolutionContainer.appendChild(textBox);
+                }
+                questionDiv.appendChild(textSolutionContainer);
+                
+                const videoSolutionContainer = document.createElement('div');
+                videoSolutionContainer.id = `video-solution-${globalIndex}`;
+                videoSolutionContainer.className = 'solution-container';
+                if (q.solutionVideoUrl) {
+                    const videoElem = createVideoElement(q.solutionVideoUrl);
+                    if (videoElem) videoSolutionContainer.appendChild(videoElem);
+                }
+                questionDiv.appendChild(videoSolutionContainer);
+                
+                if (!isSubjective) {
+                    let submitted = false;
+                    submitBtn.onclick = async () => {
+                        if (submitted) return;
+                        const selectedRadio = document.querySelector(`input[name="q_${globalIndex}"]:checked`);
+                        if (!selectedRadio) {
+                            showToast('Please select an answer');
+                            return;
+                        }
+                        const selectedIndex = parseInt(selectedRadio.value);
+                        const isCorrect = (selectedIndex === q.correctIndex);
+                        optionContainers.forEach((container, i) => {
+                            if (i === q.correctIndex) container.classList.add('correct-bg');
+                            else if (i === selectedIndex && !isCorrect) container.classList.add('wrong-bg');
+                        });
+                        if (correctAnswerBox) correctAnswerBox.classList.add('visible');
+                        if (formattedSolutionText) textSolutionBtn.disabled = false;
+                        if (q.solutionVideoUrl) videoSolutionBtn.disabled = false;
+                        submitted = true;
+                        submitBtn.disabled = true;
+                    };
+                    textSolutionBtn.disabled = true;
+                    videoSolutionBtn.disabled = true;
+                } else {
+                    textSolutionBtn.disabled = false;
+                    videoSolutionBtn.disabled = false;
+                }
+                
+                textSolutionBtn.onclick = () => {
+                    const wasVisible = textSolutionContainer.classList.contains('visible');
+                    if (!wasVisible) {
+                        textSolutionContainer.classList.add('visible');
+                        if (videoSolutionContainer.classList.contains('visible')) videoSolutionContainer.classList.remove('visible');
+                    } else {
+                        textSolutionContainer.classList.remove('visible');
+                    }
+                };
+                videoSolutionBtn.onclick = () => {
+                    const wasVisible = videoSolutionContainer.classList.contains('visible');
+                    if (!wasVisible) {
+                        videoSolutionContainer.classList.add('visible');
+                        if (textSolutionContainer.classList.contains('visible')) textSolutionContainer.classList.remove('visible');
+                    } else {
+                        videoSolutionContainer.classList.remove('visible');
+                    }
+                };
+                
+                renderMathInElementWithDelay(questionDiv);
+                return questionDiv;
+            }
+            
+            function appendQuestions(questions, startIndex) {
+                const fragment = document.createDocumentFragment();
+                questions.forEach((q, idx) => {
+                    const globalIdx = startIndex + idx + 1;
+                    fragment.appendChild(createQuestionElement(q, globalIdx));
+                });
+                dynamicContainer.appendChild(fragment);
+            }
+            
+            // ========== FETCH QUIZ QUESTIONS (PAGINATED) ==========
+            async function fetchQuizQuestions(reset = false) {
+                if (!hasMore || isLoading) return;
+                isLoading = true;
+                if (!reset) infiniteLoaderDiv.style.display = 'block';
+                
+                try {
+                    const params = new URLSearchParams({
+                        className: currentClass,
+                        subject: currentSubject,
+                        chapter: currentChapter,
+                        limit: 10
+                    });
+                    if (currentCursor !== null && currentCursor !== undefined) {
+                        params.append('cursor', currentCursor.toString());
+                    }
+                    const response = await fetch(`${QUIZ_ENDPOINT}?${params.toString()}`);
+                    if (!response.ok) throw new Error(`Server error: ${response.status}`);
+                    const data = await response.json();
+                    if (!data.success) throw new Error(data.error || 'Failed to load questions');
+                    
+                    const questions = data.questions || [];
+                    if (reset) {
+                        dynamicContainer.innerHTML = '';
+                        if (questions.length === 0) {
+                            showInfo('No questions found for the selected criteria.');
+                            hasMore = false;
+                        } else {
+                            appendQuestions(questions, 0);
+                        }
+                    } else {
+                        if (questions.length > 0) {
+                            const currentCount = document.querySelectorAll('.question-item').length;
+                            appendQuestions(questions, currentCount);
+                        } else {
+                            hasMore = false;
+                        }
+                    }
+                    currentCursor = (data.nextCursor !== undefined && data.nextCursor !== null) ? (typeof data.nextCursor === 'number' ? data.nextCursor : parseInt(data.nextCursor, 10)) : null;
+                    hasMore = data.hasMore === true;
+                    if (!hasMore) infiniteLoaderDiv.style.display = 'none';
+                } catch (error) {
+                    console.error(error);
+                    if (reset) {
+                        showError(error.message);
+                    } else {
+                        showToast('Failed to load more questions');
+                    }
+                } finally {
+                    isLoading = false;
+                    if (!reset) infiniteLoaderDiv.style.display = 'none';
+                }
+            }
+            
+            // Infinite scroll on main element
+            function setupInfiniteScroll() {
+                mainScrollable.addEventListener('scroll', () => {
+                    const scrollTop = mainScrollable.scrollTop;
+                    const clientHeight = mainScrollable.clientHeight;
+                    const scrollHeight = mainScrollable.scrollHeight;
+                    const threshold = 250;
+                    if (scrollTop + clientHeight >= scrollHeight - threshold) {
+                        if (hasMore && !isLoading && dynamicContainer.children.length > 0) {
+                            fetchQuizQuestions(false);
+                        }
+                    }
+                });
+            }
+            
+            // ========== MAIN INITIALIZATION ==========
+            async function init() {
+                initSmartHeader();
+                renderAdBanners(adContainer).catch(e => console.warn(e));
+                
+                const urlParams = new URLSearchParams(window.location.search);
+                const className = urlParams.get('className');
+                const subject = urlParams.get('subject');
+                const chapter = urlParams.get('chapter');
+                
+                if (!className || !subject || !chapter) {
+                    showError("Missing parameters. Please provide className, subject, and chapter in the URL.");
+                    document.getElementById('dynamicTitle').innerText = "Invalid Parameters";
+                    document.getElementById('dynamicSubtle').innerText = "Please check URL and try again.";
+                    return;
+                }
+                
+                currentClass = decodeURIComponent(className);
+                currentSubject = decodeURIComponent(subject);
+                currentChapter = decodeURIComponent(chapter);
+                
+                // Update title/subtle
+                document.getElementById('dynamicTitle').innerHTML = `📚 ${currentSubject} – ${currentChapter}`;
+                document.getElementById('dynamicSubtle').innerHTML = `Practice quiz for ${currentClass} | Click on options, submit, and explore solutions.`;
+                
+                showLoading();
+                await fetchQuizQuestions(true);
+                setupInfiniteScroll();
+            }
+            
+            init();
+        })();
+    </script>
+</body>
+</html>
