@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>ULTIMATE SOLUTION | Quiz Practice</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Creepster&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/contrib/auto-render.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { height: 100%; overflow: hidden; }
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #f8fafc;
+            display: flex;
+            flex-direction: column;
+        }
+        .sticky-header {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .sticky-footer {
+            position: sticky;
+            bottom: 0;
+            z-index: 40;
+            background: white;
+            border-top: 1px solid #e2e8f0;
+            box-shadow: 0 -1px 3px rgba(0,0,0,0.05);
+        }
+        main {
+            flex: 1;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+        }
+        main::-webkit-scrollbar { display: none; }
+        .loader {
+            display: flex;
+            justify-content: center;
+            padding: 3rem;
+            gap: 8px;
+        }
+        .loader-dot {
+            width: 12px;
+            height: 12px;
+            background: #3182ce;
+            border-radius: 50%;
+            animation: pulse 1.2s infinite;
+        }
+        .loader-dot:nth-child(2) { animation-delay: 0.2s; }
+        .loader-dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes pulse {
+            0%, 100% { opacity: 0.3; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+        .question-item {
+            background: #f1f5f9;
+            padding: 20px 16px;
+            border-radius: 16px;
+            margin: 20px 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .question-item.subjective { background: #fff7ed; }
+        .q-tag {
+            display: inline-block;
+            background: black;
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 20px;
+            margin-bottom: 12px;
+        }
+        .question-text {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #0f172a;
+            margin-bottom: 16px;
+            line-height: 1.6;
+        }
+        .question-options-divider {
+            border-top: 1px dashed #cbd5e1;
+            margin: 16px 0 12px;
+        }
+        .option-container {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            margin: 8px 0;
+            border: 1px solid #cbd5e1;
+            border-radius: 12px;
+            background: white;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .option-container:hover { background: #f8fafc; }
+        .option-container input {
+            margin-right: 14px;
+            accent-color: black;
+            width: 18px;
+            height: 18px;
+        }
+        .error-message, .info-box {
+            padding: 16px;
+            margin: 20px 0;
+            border-radius: 12px;
+        }
+        .error-message { background: #fee2e2; color: #991b1b; border-left: 4px solid #ef4444; }
+        .info-box { background: #dbeafe; color: #1e40af; text-align: center; }
+        .katex { font-size: 1em !important; }
+        img { max-width: 100%; border-radius: 8px; }
+        .back-link {
+            text-decoration: underline;
+            cursor: pointer;
+            font-weight: 500;
+            color: #1f2937;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .nav-btn, .submit-header-btn {
+            background: #1e293b;
+            padding: 6px 18px;
+            border-radius: 40px;
+            color: white;
+            font-size: 0.8rem;
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .nav-btn:hover:not(:disabled), .submit-header-btn:hover:not(:disabled) {
+            background: #0f172a;
+            transform: scale(0.97);
+        }
+        .nav-btn:disabled, .submit-header-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        .submit-header-btn.enabled {
+            background: #059669;
+        }
+        .submit-header-btn.enabled:hover {
+            background: #047857;
+        }
+        .question-jump {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #f1f5f9;
+            padding: 4px 12px;
+            border-radius: 40px;
+        }
+        .question-jump input {
+            width: 60px;
+            padding: 6px 8px;
+            border: 1px solid #cbd5e1;
+            border-radius: 30px;
+            text-align: center;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .chapter-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            text-decoration: underline;
+            text-underline-offset: 4px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sticky Header: three rows -->
+    <div class="sticky-header bg-white px-4 py-2">
+        <div class="max-w-3xl md:max-w-4xl mx-auto">
+            <!-- Row 1: Back link -->
+            <div class="mb-1">
+                <span id="backButton" class="back-link text-sm">← Back to Main Page</span>
+            </div>
+            <!-- Row 2: Chapter Name -->
+            <div class="mb-2">
+                <h2 id="dynamicChapterTitle" class="chapter-title">Loading...</h2>
+            </div>
+            <!-- Row 3: Question input + total + Submit button (same height as nav buttons) -->
+            <div class="flex items-center justify-between gap-3">
+                <div class="question-jump">
+                    <input type="number" id="questionJumpInput" min="1" step="1" value="1">
+                    <span class="text-sm font-medium">/ <span id="totalQuestionsSpan">0</span></span>
+                </div>
+                <button id="submitHeaderBtn" class="submit-header-btn" disabled>Submit Quiz</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scrollable main area -->
+    <main>
+        <div class="max-w-3xl md:max-w-4xl mx-auto px-4 py-6">
+            <div id="dynamic-sections-container">
+                <div class="loader"><div class="loader-dot"></div><div class="loader-dot"></div><div class="loader-dot"></div></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Sticky Footer: Previous / Next buttons -->
+    <div class="sticky-footer bg-white px-4 py-3">
+        <div class="max-w-3xl md:max-w-4xl mx-auto flex justify-start gap-4">
+            <button id="prevBtn" class="nav-btn">◀ Previous</button>
+            <button id="nextBtn" class="nav-btn">Next ▶</button>
+        </div>
+    </div>
+
+    <div id="customToast" class="fixed bottom-20 left-1/2 transform -translate-x-1/2 md:left-auto md:right-6 md:translate-x-0 z-50 toast-notification bg-gray-800 text-white px-5 py-3 rounded-xl shadow-2xl flex items-center gap-3 text-sm" style="opacity:0; visibility:hidden; transition:0.25s;">
+        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <span id="toastMessage">Info</span>
+    </div>
+
+    <script>
+        (function() {
+            const API_BASE = "https://dilshadalmm-yosv.onrender.com";
+            const QUIZ_ENDPOINT = `${API_BASE}/api/quiz`;
+
+            // State
+            let loadedQuestions = [];        // array of question objects (in order)
+            let totalQuestionsCount = null;  // unknown until we fetch all? we'll keep null, but we show total as loaded so far
+            let currentIndex = 0;            // 0-based index into loadedQuestions
+            let userAnswers = [];
+            let submitted = false;
+            let nextCursor = null;
+            let isLoading = false;
+            let allLoaded = false;
+            
+            // DOM
+            const dynamicContainer = document.getElementById('dynamic-sections-container');
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const jumpInput = document.getElementById('questionJumpInput');
+            const totalSpan = document.getElementById('totalQuestionsSpan');
+            const submitHeaderBtn = document.getElementById('submitHeaderBtn');
+            const chapterTitleEl = document.getElementById('dynamicChapterTitle');
+            
+            let currentClass = '', currentSubject = '', currentChapter = '';
+            
+            // Helper: toast
+            function showToast(msg, isErr = false) {
+                const toast = document.getElementById('customToast');
+                const span = document.getElementById('toastMessage');
+                if (!toast) return;
+                span.innerText = msg;
+                toast.style.background = isErr ? 'linear-gradient(135deg, #dc2626, #b91c1c)' : '#1f2937';
+                toast.style.opacity = '1';
+                toast.style.visibility = 'visible';
+                setTimeout(() => {
+                    toast.style.opacity = '0';
+                    toast.style.visibility = 'hidden';
+                }, 2500);
+            }
+            
+            // Back button
+            document.getElementById('backButton')?.addEventListener('click', () => showToast("Stay on current page"));
+            
+            // ========== API: fetch first chunk (limit=5) ==========
+            async function fetchFirstChunk() {
+                if (isLoading) return;
+                isLoading = true;
+                dynamicContainer.innerHTML = `<div class="loader"><div class="loader-dot"></div><div class="loader-dot"></div><div class="loader-dot"></div></div>`;
+                try {
+                    const url = `${QUIZ_ENDPOINT}?className=${encodeURIComponent(currentClass)}&subject=${encodeURIComponent(currentSubject)}&chapter=${encodeURIComponent(currentChapter)}&limit=5`;
+                    const resp = await fetch(url);
+                    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                    const data = await resp.json();
+                    if (!data.success) throw new Error(data.error || 'Failed');
+                    const questions = data.questions || [];
+                    if (questions.length === 0) {
+                        dynamicContainer.innerHTML = `<div class="info-box">No questions available.</div>`;
+                        allLoaded = true;
+                        return;
+                    }
+                    loadedQuestions = questions;
+                    nextCursor = data.nextCursor || null;
+                    allLoaded = !data.hasMore;
+                    totalSpan.textContent = loadedQuestions.length + (allLoaded ? '' : '+');
+                    userAnswers = new Array(loadedQuestions.length).fill(null);
+                    currentIndex = 0;
+                    refreshCurrentQuestion();
+                } catch (err) {
+                    dynamicContainer.innerHTML = `<div class="error-message">${err.message}</div>`;
+                } finally {
+                    isLoading = false;
+                }
+            }
+            
+            // Fetch next chunk (append)
+            async function fetchNextChunk() {
+                if (isLoading || allLoaded || !nextCursor) return;
+                isLoading = true;
+                try {
+                    const url = `${QUIZ_ENDPOINT}?className=${encodeURIComponent(currentClass)}&subject=${encodeURIComponent(currentSubject)}&chapter=${encodeURIComponent(currentChapter)}&limit=5&cursor=${nextCursor}`;
+                    const resp = await fetch(url);
+                    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                    const data = await resp.json();
+                    if (!data.success) throw new Error(data.error);
+                    const newQuestions = data.questions || [];
+                    if (newQuestions.length === 0) {
+                        allLoaded = true;
+                        return;
+                    }
+                    const startIdx = loadedQuestions.length;
+                    loadedQuestions.push(...newQuestions);
+                    nextCursor = data.nextCursor || null;
+                    allLoaded = !data.hasMore;
+                    // extend userAnswers
+                    userAnswers = [...userAnswers, ...new Array(newQuestions.length).fill(null)];
+                    totalSpan.textContent = loadedQuestions.length + (allLoaded ? '' : '+');
+                    // if currentIndex is now within new range? No, user must be at end to trigger, but we handle later
+                } catch (err) {
+                    showToast("Failed to load more questions", true);
+                } finally {
+                    isLoading = false;
+                }
+            }
+            
+            // Fetch a specific question by index (when user jumps to an unloaded index)
+            // We need to load chunks until we have that index
+            async function ensureQuestionLoaded(targetIndex) {
+                if (targetIndex < loadedQuestions.length) return true;
+                if (allLoaded) return false;
+                // Load chunks sequentially until we reach targetIndex
+                while (loadedQuestions.length <= targetIndex && !allLoaded && !isLoading) {
+                    await fetchNextChunk();
+                    if (isLoading) await new Promise(r => setTimeout(r, 300));
+                }
+                return targetIndex < loadedQuestions.length;
+            }
+            
+            // Refresh UI: render current question, update buttons, header submit state
+            function refreshCurrentQuestion() {
+                if (!loadedQuestions.length) return;
+                const q = loadedQuestions[currentIndex];
+                dynamicContainer.innerHTML = '';
+                dynamicContainer.appendChild(renderSingleQuestion(q, currentIndex));
+                updateNavButtons();
+                updateJumpInput();
+                updateSubmitButtonState();
+                // scroll to top of card
+                dynamicContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+            
+            function updateNavButtons() {
+                prevBtn.disabled = (currentIndex === 0);
+                nextBtn.disabled = (currentIndex === loadedQuestions.length - 1 && allLoaded) || (currentIndex === loadedQuestions.length - 1 && !allLoaded && isLoading);
+                // If not allLoaded and we are at last loaded question, next is allowed to trigger load
+                if (!allLoaded && currentIndex === loadedQuestions.length - 1) {
+                    nextBtn.disabled = false;
+                }
+            }
+            
+            function updateJumpInput() {
+                jumpInput.value = currentIndex + 1;
+                jumpInput.max = allLoaded ? loadedQuestions.length : (loadedQuestions.length + 50); // placeholder
+                totalSpan.textContent = allLoaded ? loadedQuestions.length : (loadedQuestions.length + '+');
+            }
+            
+            // Submit button enabled only if current question number >= 200 (1-indexed) i.e. index >= 199
+            function updateSubmitButtonState() {
+                const isAfter200 = (currentIndex + 1) >= 200;
+                if (isAfter200 && !submitted) {
+                    submitHeaderBtn.disabled = false;
+                    submitHeaderBtn.classList.add('enabled');
+                } else {
+                    submitHeaderBtn.disabled = true;
+                    submitHeaderBtn.classList.remove('enabled');
+                }
+                if (submitted) {
+                    submitHeaderBtn.disabled = true;
+                    submitHeaderBtn.textContent = '✓ Submitted';
+                } else {
+                    submitHeaderBtn.textContent = 'Submit Quiz';
+                }
+            }
+            
+            // Final submission
+            function finalizeQuiz() {
+                if (submitted) {
+                    showToast("Quiz already submitted!");
+                    return;
+                }
+                let objectiveCount = 0, correct = 0;
+                for (let i = 0; i < loadedQuestions.length; i++) {
+                    const q = loadedQuestions[i];
+                    if (q.questionType !== 'Subjective' && q.correctIndex !== undefined) {
+                        objectiveCount++;
+                        if (userAnswers[i] !== undefined && userAnswers[i] === q.correctIndex) correct++;
+                    }
+                }
+                const pct = objectiveCount ? Math.round((correct / objectiveCount) * 100) : 0;
+                showToast(`🎯 Score: ${correct}/${objectiveCount} (${pct}%)`);
+                submitted = true;
+                submitHeaderBtn.disabled = true;
+                submitHeaderBtn.textContent = '✓ Submitted';
+            }
+            
+            // Render one question (no action buttons inside)
+            function renderSingleQuestion(question, idx) {
+                const isSubjective = (question.questionType === 'Subjective');
+                const div = document.createElement('div');
+                div.className = `question-item ${isSubjective ? 'subjective' : ''}`;
+                const tag = document.createElement('div');
+                tag.className = 'q-tag';
+                tag.textContent = `Question ${idx+1} ${isSubjective ? '(Subjective)' : '(MCQ)'}`;
+                const qText = document.createElement('div');
+                qText.className = 'question-text';
+                qText.innerHTML = (question.questionText || '').replace(/\r?\n/g, '<br>');
+                div.appendChild(tag);
+                div.appendChild(qText);
+                if (question.questionImageUrl) {
+                    const img = document.createElement('img');
+                    img.src = question.questionImageUrl;
+                    img.style.marginBottom = '16px';
+                    div.appendChild(img);
+                }
+                const divider = document.createElement('div');
+                divider.className = 'question-options-divider';
+                div.appendChild(divider);
+                
+                if (!isSubjective && question.options && question.options.length) {
+                    const optsDiv = document.createElement('div');
+                    const stored = userAnswers[idx];
+                    question.options.forEach((opt, optIdx) => {
+                        const label = document.createElement('label');
+                        label.className = 'option-container';
+                        const radio = document.createElement('input');
+                        radio.type = 'radio';
+                        radio.name = `q_${idx}`;
+                        radio.value = optIdx;
+                        if (stored === optIdx) radio.checked = true;
+                        radio.addEventListener('change', (e) => {
+                            if (e.target.checked) userAnswers[idx] = optIdx;
+                        });
+                        const span = document.createElement('span');
+                        span.innerHTML = opt.replace(/\r?\n/g, '<br>');
+                        label.appendChild(radio);
+                        label.appendChild(span);
+                        optsDiv.appendChild(label);
+                    });
+                    div.appendChild(optsDiv);
+                } else if (isSubjective) {
+                    const note = document.createElement('div');
+                    note.className = 'text-sm text-gray-500 italic bg-white p-3 rounded-lg mt-2';
+                    note.textContent = '📝 Subjective question — review and think critically.';
+                    div.appendChild(note);
+                }
+                // KaTeX
+                if (typeof renderMathInElement === 'function') {
+                    try { renderMathInElement(div, { delimiters: [{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}] }); } catch(e) {}
+                }
+                return div;
+            }
+            
+            // Navigation handlers with lazy loading
+            async function goPrev() {
+                if (currentIndex > 0) {
+                    currentIndex--;
+                    refreshCurrentQuestion();
+                }
+            }
+            async function goNext() {
+                if (currentIndex < loadedQuestions.length - 1) {
+                    currentIndex++;
+                    refreshCurrentQuestion();
+                } else if (!allLoaded && !isLoading) {
+                    // at the last loaded question, load next chunk and then move to next
+                    await fetchNextChunk();
+                    if (currentIndex + 1 < loadedQuestions.length) {
+                        currentIndex++;
+                        refreshCurrentQuestion();
+                    } else {
+                        showToast("No more questions available", true);
+                    }
+                } else if (allLoaded && currentIndex === loadedQuestions.length-1) {
+                    showToast("This is the last question");
+                }
+            }
+            
+            // Jump to specific question number (1-indexed)
+            async function jumpToQuestion(num) {
+                let target = num - 1;
+                if (target < 0) target = 0;
+                if (target < loadedQuestions.length) {
+                    currentIndex = target;
+                    refreshCurrentQuestion();
+                } else {
+                    // need to load until we have that index
+                    showToast(`Loading question ${num}...`);
+                    const success = await ensureQuestionLoaded(target);
+                    if (success) {
+                        currentIndex = target;
+                        refreshCurrentQuestion();
+                    } else {
+                        showToast(`Question ${num} not found`, true);
+                        jumpInput.value = currentIndex + 1;
+                    }
+                }
+            }
+            
+            // Event binding
+            function bindEvents() {
+                prevBtn.onclick = goPrev;
+                nextBtn.onclick = goNext;
+                jumpInput.addEventListener('change', async (e) => {
+                    let val = parseInt(e.target.value);
+                    if (isNaN(val)) val = 1;
+                    await jumpToQuestion(val);
+                });
+                submitHeaderBtn.onclick = finalizeQuiz;
+            }
+            
+            // ========== INIT ==========
+            async function init() {
+                const params = new URLSearchParams(window.location.search);
+                const className = params.get('className');
+                const subject = params.get('subject');
+                const chapter = params.get('chapter');
+                if (!className || !subject || !chapter) {
+                    dynamicContainer.innerHTML = `<div class="error-message">Missing parameters: className, subject, chapter</div>`;
+                    chapterTitleEl.textContent = 'Error';
+                    return;
+                }
+                currentClass = decodeURIComponent(className);
+                currentSubject = decodeURIComponent(subject);
+                currentChapter = decodeURIComponent(chapter);
+                chapterTitleEl.textContent = currentChapter;
+                bindEvents();
+                await fetchFirstChunk();
+            }
+            
+            init();
+        })();
+    </script>
+</body>
+</html>
