@@ -679,15 +679,21 @@
         // ======================== API CONFIGURATION ========================
         const API_BASE = "https://dilshadalmm-yosv.onrender.com";
         // ── SESSION LISTENER ──
-function startSessionListener() {
+         function startSessionListener() {
     const localSessionId = localStorage.getItem('sessionId');
     const uid = localStorage.getItem('uid');
     if (!localSessionId || !uid) return;
+
+    let isFirstSnapshot = true;
 
     const unsubscribe = firebase.firestore()
         .collection('users')
         .doc(uid)
         .onSnapshot((doc) => {
+            if (isFirstSnapshot) {
+                isFirstSnapshot = false;
+                return;
+            }
             if (!doc.exists) return;
             const firestoreSessionId = doc.data().sessionId;
             if (firestoreSessionId !== localSessionId) {
@@ -703,7 +709,7 @@ function startSessionListener() {
         }, (err) => {
             console.warn('Session listener error', err);
         });
-        }
+         }
         // --- READ CLASS, SUBJECT & TUTOR FROM URL PARAMETERS ---
         const urlParams = new URLSearchParams(window.location.search);
         let selectedClassId = urlParams.get('classId') || null;
