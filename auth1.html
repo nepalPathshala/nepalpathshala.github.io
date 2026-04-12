@@ -631,6 +631,20 @@
         // Show post-login panel
         async function showPostLoginPanel(user) {
     currentFirebaseUser = user;
+            
+           // ── SESSION: Generate & save sessionId ──
+    try {
+        const sessionId = crypto.randomUUID();
+        localStorage.setItem('sessionId', sessionId);
+        localStorage.setItem('uid', user.uid);
+        await firebase.firestore()
+            .collection('users')
+            .doc(user.uid)
+            .set({ sessionId }, { merge: true });
+    } catch(e) {
+        console.warn('Session save failed', e);
+    }
+ 
     loginRegisterContainer.classList.add('hidden');
     postLoginPanel.classList.remove('hidden');
     selectedClassId = null;
