@@ -1304,6 +1304,7 @@ else renderPosts([]);
             // Initialise UI and data
 initSmartHeader();
 setupInfiniteScroll();
+startSessionListener();
 document.addEventListener('pointerdown', function(e) { 
     if (!e.target.closest('.custom-select-wrapper')) closeAllDropdowns(); 
 });
