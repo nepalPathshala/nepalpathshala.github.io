@@ -1066,7 +1066,8 @@
             titleEl.className = "text-3xl font-extrabold text-gray-900 mb-4 tracking-tight leading-tight uppercase title-underline";
             const descEl = document.createElement('p');
             descEl.textContent = postSubtle || "No additional details.";
-            descEl.className = "text-lg text-gray-600 mb-3 font-normal opacity-90";
+            descEl.className = "text-lg mb-3 font-normal opacity-90";
+            descEl.style.color = "#4b5563";
             const timeDisplay = document.createElement('div');
             timeDisplay.className = "timestamp-text";
             timeDisplay.textContent = formatCreatedAt(createdAt);
