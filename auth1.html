@@ -641,10 +641,11 @@ window.setDoc = setDoc;
         const sessionId = crypto.randomUUID();
         localStorage.setItem('sessionId', sessionId);
         localStorage.setItem('uid', user.uid);
-        await firebase.firestore()
-            .collection('users')
-            .doc(user.uid)
-            .set({ sessionId }, { merge: true });
+       await window.setDoc(
+    window.doc(window.db, 'users', user.uid),
+    { sessionId },
+    { merge: true }
+); 
     } catch(e) {
         console.warn('Session save failed', e);
     }
