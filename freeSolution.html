@@ -1712,5 +1712,11 @@ else renderPosts([]);
         // In case auth state takes time, we already have loading overlay visible.
         // The observer above will run when auth state is known.
     </script>
+    <script>
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("/service-worker.js")
+  .then(() => console.log("PWA Installed"));
+}
+    </script>
 </body>
 </html>
