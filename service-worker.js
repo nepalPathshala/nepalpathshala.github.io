@@ -2,7 +2,7 @@ const CACHE_NAME = "ultimate-solution-v1";
 
 const urlsToCache = [
   "/",
-  "/freeSolution1.html"
+  "/freeSolution.html"
 ];
 
 self.addEventListener("install", event => {
