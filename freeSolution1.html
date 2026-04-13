@@ -1415,16 +1415,23 @@ else renderPosts([]);
         let navPanelInitialized = false;
 
         function toggleNavMenu(open) {
-            const sideMenu = document.getElementById('navSideMenu');
-            const overlay = document.getElementById('navOverlay');
-            const fab = document.getElementById('fabChatBtn');
-            if (!sideMenu || !overlay) return;
-            sideMenu.style.transform = open ? 'translateX(0)' : 'translateX(100%)';
-            overlay.style.opacity = open ? '1' : '0';
-            overlay.style.pointerEvents = open ? 'auto' : 'none';
-            document.body.style.overflow = open ? 'hidden' : '';
-            if (fab) fab.style.display = open ? 'none' : '';
+    const sideMenu = document.getElementById('navSideMenu');
+    const overlay = document.getElementById('navOverlay');
+    const fab = document.getElementById('fabChatBtn');
+    if (!sideMenu || !overlay) return;
+    sideMenu.style.transform = open ? 'translateX(0)' : 'translateX(100%)';
+    overlay.style.opacity = open ? '1' : '0';
+    overlay.style.pointerEvents = open ? 'auto' : 'none';
+    document.body.style.overflow = open ? 'hidden' : '';
+    if (fab) {
+        if (open) {
+            fab.style.display = 'none';
+        } else {
+            // Delay FAB restore to match sidebar slide-out transition (0.4s)
+            setTimeout(() => { fab.style.display = ''; }, 400);
         }
+    }
+}
 
         async function openNavPanel() {
             toggleNavMenu(true);
