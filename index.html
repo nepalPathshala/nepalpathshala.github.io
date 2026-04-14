@@ -2401,18 +2401,21 @@ else renderPosts([]);
         async function autoSelectFirstTutorAndFetch() {
             if (!selectedClassId || !selectedSubjectId) return;
 
-            // Let populateTutorSelect do the single fetch and build the dropdown
-            await populateTutorSelect();
+            // Fetch tutors directly to auto-select the first one (single fetch, cached after)
+            const tutorsData = await fetchJSON(
+                `${API_BASE}/tutors?classId=${encodeURIComponent(selectedClassId)}&subjectId=${encodeURIComponent(selectedSubjectId)}`,
+                'Failed to load tutors'
+            );
 
-            // Read the first tutor from the dropdown if none already selected
-            if (!selectedTutorId) {
-                const tutorSelectEl = document.getElementById('tutorSelect');
-                if (tutorSelectEl && tutorSelectEl.options.length > 0) {
-                    selectedTutorId = tutorSelectEl.options[0].value || null;
-                }
+            if (tutorsData && Array.isArray(tutorsData) && tutorsData.length > 0 && !selectedTutorId) {
+                const firstTutor = tutorsData[0];
+                selectedTutorId = firstTutor.tutorId || firstTutor.id;
             }
 
-            // Fetch posts (selectedTutorId may or may not be set)
+            // Re-render tutor dropdown to reflect the auto-selected tutor (no extra fetch — server cache hit)
+            await populateTutorSelect();
+
+            // Fetch posts
             if (selectedTutorId) {
                 currentFeedMode = 'paginated';
                 paginationCursor = null;
