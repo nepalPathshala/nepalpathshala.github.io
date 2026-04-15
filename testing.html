@@ -1196,6 +1196,7 @@
         const DEFAULT_LIMIT = 10;
 
         let navCoursesCache = null; // cached courses+subjects for nav panel
+let studentAccessCache = null; // single /student-access response cache
 
         // DOM elements
         const filterContainer = document.getElementById('filterFormContainer');
@@ -2183,43 +2184,43 @@ else renderPosts([]);
             wrapperDiv.innerHTML = '';
             wrapperDiv.appendChild(selectComponent);
         }
+async function populateTutorSelect(resetOnly = false) {
+    const wrapperDiv = document.getElementById('tutorSelectWrapper');
+    if (!wrapperDiv) return;
+    if (!selectedClassId || !selectedSubjectId) {
+        wrapperDiv.innerHTML = '';
+        wrapperDiv.appendChild(buildCustomSelect([], 'Select Tutor', null, () => {}));
+        return;
+    }
 
-        async function populateTutorSelect(resetOnly = false) {
-            const wrapperDiv = document.getElementById('tutorSelectWrapper');
-            if (!wrapperDiv) return;
-            if (!selectedClassId || !selectedSubjectId) {
-                wrapperDiv.innerHTML = '';
-                wrapperDiv.appendChild(buildCustomSelect([], 'Select Tutor', null, () => {}));
-                return;
+    // Derive tutors from the cached /student-access response (no extra fetch)
+    let options = [];
+    if (studentAccessCache) {
+        const cls = studentAccessCache.classes.find(c => c.classId === selectedClassId);
+        if (cls) {
+            const sub = cls.subjects.find(s => s.subjectId === selectedSubjectId);
+            if (sub && Array.isArray(sub.tutors)) {
+                options = sub.tutors.map(t => ({ value: t.tutorId, label: t.tutorName }));
             }
-            if (!resetOnly) wrapperDiv.innerHTML = '<div class="loader" style="padding:0.5rem"><div class="loader-dot"></div><div class="loader-dot"></div><div class="loader-dot"></div></div>';
-            // Fetch tutors for class & subject (independent of chapter)
-            const data = await fetchJSON(`${API_BASE}/tutors?classId=${encodeURIComponent(selectedClassId)}&subjectId=${encodeURIComponent(selectedSubjectId)}`, "Failed to load tutors");
-            let options = [];
-            if (data && Array.isArray(data)) options = data.map(t => ({ value: t.tutorId || t.id, label: t.tutorName || t.name }));
-            
-            // Pre‑select tutor from URL if present and not already selected
-            if (!selectedTutorId && options.length > 0) {
-                // Fallback: if URL tutorId not found, use first? Better to keep null and show empty.
-                // But we already have selectedTutorId from URL.
-            }
-
-            const selectComponent = buildCustomSelect(options, 'Select Tutor', selectedTutorId, async (tutorId, tutorName) => {
-                selectedTutorId = tutorId;
-                selectedChapterId = null;   // reset chapter when tutor changes
-                currentFeedMode = 'paginated';
-                paginationCursor = null;
-                hasMorePosts = false;
-                destroyAllPlayers();
-                clearPosts();
-                postsContainer.innerHTML = '<div class="loader"><div class="loader-dot"></div><div class="loader-dot"></div><div class="loader-dot"></div></div>';
-                await fetchPaginatedPosts(null, false);
-                // Refresh chapter dropdown (options remain same, but selected chapter cleared)
-                await populateChapterSelect(true);
-            });
-            wrapperDiv.innerHTML = '';
-            wrapperDiv.appendChild(selectComponent);
         }
+    }
+
+    const selectComponent = buildCustomSelect(options, 'Select Tutor', selectedTutorId, async (tutorId, tutorName) => {
+        selectedTutorId = tutorId;
+        selectedChapterId = null;   // reset chapter when tutor changes
+        currentFeedMode = 'paginated';
+        paginationCursor = null;
+        hasMorePosts = false;
+        destroyAllPlayers();
+        clearPosts();
+        postsContainer.innerHTML = '<div class="loader"><div class="loader-dot"></div><div class="loader-dot"></div><div class="loader-dot"></div></div>';
+        await fetchPaginatedPosts(null, false);
+        // Refresh chapter dropdown (options remain same, but selected chapter cleared)
+        await populateChapterSelect(true);
+    });
+    wrapperDiv.innerHTML = '';
+    wrapperDiv.appendChild(selectComponent);
+}
 
         // --- BUILD FILTER UI (only chapter and tutor) ---
         async function buildFilterUI() {
@@ -2401,47 +2402,49 @@ else renderPosts([]);
         }
 
         async function initNavPanel() {
-            const navCourseList = document.getElementById('navCourseList');
-            if (!navCourseList) return;
+    const navCourseList = document.getElementById('navCourseList');
+    if (!navCourseList) return;
 
-            // Update profile name in nav if user is logged in
-            const currentUser = auth.currentUser;
-            if (currentUser) {
-                const nameEl = document.getElementById('navProfileName');
-                const initialsEl = document.getElementById('navProfileInitials');
-                const displayName = currentUser.displayName || currentUser.email || 'Student';
-                if (nameEl) nameEl.textContent = displayName;
-                if (initialsEl) {
-                    const initials = displayName.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
-                    initialsEl.textContent = initials || '??';
-                }
-            }
-
-            // If data already cached, skip fetch and just re-render from cache
-            if (navCoursesCache) {
-                renderNavCourses(navCoursesCache);
-                return;
-            }
-
-            // Show loader only on first load
-            navCourseList.innerHTML = '<div style="display:flex;justify-content:center;padding:2rem 0;"><div class="loader"><div class="loader-dot"></div><div class="loader-dot"></div><div class="loader-dot"></div></div></div>';
-
-            const classesData = await fetchJSON(`${API_BASE}/classes`, 'Failed to load courses');
-            if (!classesData || !Array.isArray(classesData)) {
-                navCourseList.innerHTML = '<div style="text-align:center;color:#64748b;padding:2rem;">Failed to load courses.</div>';
-                return;
-            }
-
-            const classesWithSubjects = await Promise.all(
-                classesData.map(async (cls) => {
-                    const subjects = await fetchJSON(`${API_BASE}/subjects?classId=${encodeURIComponent(cls.classId)}`, 'Failed to load subjects');
-                    return { classId: cls.classId, className: cls.className, subjects: Array.isArray(subjects) ? subjects : [] };
-                })
-            );
-
-            navCoursesCache = classesWithSubjects; // store in cache
-            renderNavCourses(classesWithSubjects);
+    // Update profile name in nav if user is logged in
+    const currentUser = auth.currentUser;
+    if (currentUser) {
+        const nameEl = document.getElementById('navProfileName');
+        const initialsEl = document.getElementById('navProfileInitials');
+        const displayName = currentUser.displayName || currentUser.email || 'Student';
+        if (nameEl) nameEl.textContent = displayName;
+        if (initialsEl) {
+            const initials = displayName.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+            initialsEl.textContent = initials || '??';
         }
+    }
+
+    // If nav courses already cached, just re-render
+    if (navCoursesCache) {
+        renderNavCourses(navCoursesCache);
+        return;
+    }
+
+    // Show loader while waiting for student-access data
+    navCourseList.innerHTML = '<div style="display:flex;justify-content:center;padding:2rem 0;"><div class="loader"><div class="loader-dot"></div><div class="loader-dot"></div><div class="loader-dot"></div></div></div>';
+
+    // Ensure studentAccessCache is populated (may already be ready from onAuthStateChanged)
+    if (!studentAccessCache) {
+        const data = await fetchJSON(`${API_BASE}/student-access`, 'Failed to load courses');
+        if (!data || !Array.isArray(data.classes)) {
+            navCourseList.innerHTML = '<div style="text-align:center;color:#64748b;padding:2rem;">Failed to load courses.</div>';
+            return;
+        }
+        studentAccessCache = data;
+    }
+
+    // Build nav-compatible shape: classes with subjects array
+    navCoursesCache = studentAccessCache.classes.map(cls => ({
+        classId: cls.classId,
+        className: cls.className,
+        subjects: cls.subjects.map(s => ({ subjectId: s.subjectId, subjectName: s.subjectName }))
+    }));
+    renderNavCourses(navCoursesCache);
+}
 
         async function handleNavSubjectSelect(classId, subjectId) {
             // Close nav panel
@@ -2468,68 +2471,67 @@ else renderPosts([]);
         }
 
         async function autoSelectFirstTutorAndFetch() {
-            if (!selectedClassId || !selectedSubjectId) return;
+    if (!selectedClassId || !selectedSubjectId) return;
 
-            // Fetch tutors for this class+subject
-            const tutorsData = await fetchJSON(
-                `${API_BASE}/tutors?classId=${encodeURIComponent(selectedClassId)}&subjectId=${encodeURIComponent(selectedSubjectId)}`,
-                'Failed to load tutors'
-            );
-
-            if (tutorsData && Array.isArray(tutorsData) && tutorsData.length > 0) {
-                const firstTutor = tutorsData[0];
-                selectedTutorId = firstTutor.tutorId || firstTutor.id;
-
-                // Rebuild tutor dropdown to reflect auto-selected tutor
-                await populateTutorSelect();
-            }
-
-            // Fetch posts (selectedTutorId may or may not be set)
-            if (selectedTutorId) {
-                currentFeedMode = 'paginated';
-                paginationCursor = null;
-                hasMorePosts = false;
-                await fetchPaginatedPosts(null, false);
-            } else {
-                showEmptyPostsMessage();
+    // Derive first tutor from studentAccessCache (no extra fetch)
+    if (!selectedTutorId && studentAccessCache) {
+        const cls = studentAccessCache.classes.find(c => c.classId === selectedClassId);
+        if (cls) {
+            const sub = cls.subjects.find(s => s.subjectId === selectedSubjectId);
+            if (sub && Array.isArray(sub.tutors) && sub.tutors.length > 0) {
+                selectedTutorId = sub.tutors[0].tutorId;
             }
         }
+    }
+
+    // Rebuild tutor dropdown to reflect auto-selected tutor
+    await populateTutorSelect();
+
+    // Fetch posts (selectedTutorId may or may not be set)
+    if (selectedTutorId) {
+        currentFeedMode = 'paginated';
+        paginationCursor = null;
+        hasMorePosts = false;
+        await fetchPaginatedPosts(null, false);
+    } else {
+        showEmptyPostsMessage();
+    }
+}
 
         async function autoInitOnLoad() {
-            // If classId and subjectId already came from URL params, just auto-select tutor
-            if (selectedClassId && selectedSubjectId) {
-                // If tutorId already in URL, use it; otherwise auto-select first
-                if (!selectedTutorId) {
-                    await autoSelectFirstTutorAndFetch();
-                }
-                // else: tutorId already set from URL, fetchPaginatedPosts will be called by existing logic
-                return;
-            }
-
-            // No URL params — fetch first class, then first subject, then first tutor
-            const classesData = await fetchJSON(`${API_BASE}/classes`, 'Failed to auto-load classes');
-            if (!classesData || !Array.isArray(classesData) || classesData.length === 0) {
-                showEmptyPostsMessage();
-                return;
-            }
-            selectedClassId = classesData[0].classId;
-
-            const subjectsData = await fetchJSON(
-                `${API_BASE}/subjects?classId=${encodeURIComponent(selectedClassId)}`,
-                'Failed to auto-load subjects'
-            );
-            if (!subjectsData || !Array.isArray(subjectsData) || subjectsData.length === 0) {
-                showEmptyPostsMessage();
-                return;
-            }
-            selectedSubjectId = subjectsData[0].subjectId;
-
-            // Rebuild filter UI for auto-selected class+subject AND auto-select first tutor in parallel
-            await Promise.all([
-                buildFilterUI(),
-                autoSelectFirstTutorAndFetch()
-            ]);
+    // Fetch the single combined endpoint (cached for all subsequent lookups)
+    if (!studentAccessCache) {
+        const data = await fetchJSON(`${API_BASE}/student-access`, 'Failed to load your courses');
+        if (!data || !Array.isArray(data.classes) || data.classes.length === 0) {
+            showEmptyPostsMessage();
+            return;
         }
+        studentAccessCache = data;
+    }
+
+    // If classId and subjectId already came from URL params, validate and proceed
+    if (selectedClassId && selectedSubjectId) {
+        if (!selectedTutorId) {
+            await autoSelectFirstTutorAndFetch();
+        }
+        return;
+    }
+
+    // No URL params — pick first class and first subject from cache
+    const firstClass = studentAccessCache.classes[0];
+    if (!firstClass) { showEmptyPostsMessage(); return; }
+    selectedClassId = firstClass.classId;
+
+    const firstSubject = firstClass.subjects && firstClass.subjects[0];
+    if (!firstSubject) { showEmptyPostsMessage(); return; }
+    selectedSubjectId = firstSubject.subjectId;
+
+    // Rebuild filter UI and auto-select first tutor in parallel
+    await Promise.all([
+        buildFilterUI(),
+        autoSelectFirstTutorAndFetch()
+    ]);
+}
 
         // ======================== AUTH & INIT ========================
         auth.onAuthStateChanged(async (user) => {
@@ -2552,16 +2554,15 @@ else renderPosts([]);
             initSmartHeader();
             setupInfiniteScroll();
             startSessionListener(user);
-            // Pre-fetch nav data in background (no await — fire and forget)
-            fetchJSON(`${API_BASE}/classes`, 'Failed to pre-load nav').then(async classesData => {
-                if (!classesData || !Array.isArray(classesData)) return;
-                const classesWithSubjects = await Promise.all(
-                    classesData.map(async (cls) => {
-                        const subjects = await fetchJSON(`${API_BASE}/subjects?classId=${encodeURIComponent(cls.classId)}`, '');
-                        return { classId: cls.classId, className: cls.className, subjects: Array.isArray(subjects) ? subjects : [] };
-                    })
-                );
-                navCoursesCache = classesWithSubjects; // cache is ready before user ever opens nav
+            // Pre-fetch combined student-access in background (primes both data and nav caches)
+            fetchJSON(`${API_BASE}/student-access`, '').then(data => {
+                if (!data || !Array.isArray(data.classes)) return;
+                studentAccessCache = data;
+                navCoursesCache = data.classes.map(cls => ({
+                    classId: cls.classId,
+                    className: cls.className,
+                    subjects: cls.subjects.map(s => ({ subjectId: s.subjectId, subjectName: s.subjectName }))
+                }));
             });
             document.addEventListener('pointerdown', function(e) { 
                 if (!e.target.closest('.custom-select-wrapper')) closeAllDropdowns(); 
