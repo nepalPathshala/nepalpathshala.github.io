@@ -12,7 +12,7 @@
     <!-- Firebase SDKs -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, sendEmailVerification, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        
 import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         
         const firebaseConfig = {
@@ -35,7 +35,7 @@ window.setDoc = setDoc;
         window.createUserWithEmailAndPassword = createUserWithEmailAndPassword;
         window.signInWithEmailAndPassword = signInWithEmailAndPassword;
         window.updateProfile = updateProfile;
-        window.sendEmailVerification = sendEmailVerification;
+        
         window.signOut = signOut;
         window.onAuthStateChanged = onAuthStateChanged;
     </script>
@@ -735,12 +735,7 @@ window.setDoc = setDoc;
         // Core: after authentication, attempt to show upload panel if user is tutor
         async function handleAuthenticatedUser(user) {
             if (!user) return false;
-            if (!user.emailVerified) {
-                showToast('Please verify your email before accessing the panel.', true);
-                await window.signOut(window.auth);
-                resetToLogin();
-                return false;
-            }
+            
             currentFirebaseUser = user;
             // generate session (optional, keep original behavior)
             try {
@@ -790,11 +785,7 @@ window.setDoc = setDoc;
             try {
                 const userCredential = await window.signInWithEmailAndPassword(window.auth, email, password);
                 const user = userCredential.user;
-                if (!user.emailVerified) {
-                    showToast('Please verify your email before logging in. Check your inbox.');
-                    setButtonLoading(loginBtn, false);
-                    return;
-                }
+                
                 await handleAuthenticatedUser(user);
                 setButtonLoading(loginBtn, false);
             } catch (error) {
@@ -863,9 +854,7 @@ window.setDoc = setDoc;
                 const userCredential = await window.createUserWithEmailAndPassword(window.auth, email, password);
                 const user = userCredential.user;
                 await window.updateProfile(user, { displayName: userName });
-                await window.sendEmailVerification(user);
-                await window.signOut(window.auth);
-                showToast('Account created! Verification email sent. Please verify then sign in.', false);
+                showToast('Account created! You can now sign in.', false);
                 registerForm.reset();
                 imageInput.value = '';
                 profilePreview.style.display = 'none';
@@ -874,9 +863,6 @@ window.setDoc = setDoc;
                 setButtonLoading(registerBtn, false);
                 signUpSection.classList.add('hidden');
                 signInSection.classList.remove('hidden');
-                setTimeout(() => {
-                    showToast('After email verification, use SIGN IN to continue.', false);
-                }, 2000);
             } catch (error) {
                 let msg = error.message;
                 if (msg.includes('auth/email-already-in-use')) msg = 'Email already registered';
@@ -895,13 +881,8 @@ window.setDoc = setDoc;
         
         // Auto-login check on page load
         window.onAuthStateChanged(window.auth, async (user) => {
-            if (user && user.emailVerified) {
-                // Already authenticated and email verified → directly go to upload panel (if tutor)
+            if (user) {
                 await handleAuthenticatedUser(user);
-            } else if (user && !user.emailVerified) {
-                showToast('Please verify your email before accessing the panel.', true);
-                await window.signOut(window.auth);
-                resetToLogin();
             } else {
                 // No user: ensure login/register visible and upload panel hidden
                 resetToLogin();
