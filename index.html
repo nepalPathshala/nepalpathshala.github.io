@@ -720,14 +720,29 @@
         .modern-control-bar.visible {
             opacity: 1;
         }
-        .top-progress-container {
-            width: 100%;
-            height: 3px;
-            background: rgba(255,255,255,0.2);
-            cursor: pointer;
-            position: relative;
-            margin-bottom: 2px;
-        }
+        .progress-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    margin-bottom: 2px;
+}
+.progress-time {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.9);
+    white-space: nowrap;
+    flex-shrink: 0;
+    letter-spacing: 0.3px;
+}
+.top-progress-container {
+    flex: 1;
+    height: 3px;
+    background: rgba(255,255,255,0.2);
+    cursor: pointer;
+    position: relative;
+}
         .progress-track {
             position: absolute;
             top: 0;
@@ -776,13 +791,7 @@
             min-width: 0;
             flex-wrap: nowrap;
         }
-        .center-controls {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex: 1;
-            min-width: 0;
-        }
+        
         .control-btn {
     background: transparent;
     border: none;
@@ -819,17 +828,7 @@
             width: 24px;
             height: 24px;
         }
-        .time-display {
-            font-family: 'Montserrat', sans-serif;
-            font-size: 12px;
-            font-weight: 500;
-            letter-spacing: 0.3px;
-            white-space: nowrap;
-            min-width: 100px;
-            text-align: center;
-            color: rgba(255,255,255,0.95);
-            flex-shrink: 0;
-        }
+        
         .volume-btn {
             display: flex;
             align-items: center;
@@ -937,9 +936,7 @@
                 min-width: 40px;
                 min-height: 40px;
             }
-            .time-display {
-                font-size: 11px;
-                min-width: 90px;
+            
             }
             .left-controls {
                 gap: 6px;
@@ -1861,16 +1858,16 @@ if (progressBar) {
                         progressThumb.style.left = `${progress}%`;
                     }
                     
-                    const timeDisplay = container.querySelector('.time-display');
-                    if (timeDisplay) {
-                        const formatTime = (seconds) => {
-                            if (isNaN(seconds)) return '0:00';
-                            const mins = Math.floor(seconds / 60);
-                            const secs = Math.floor(seconds % 60);
-                            return `${mins}:${secs.toString().padStart(2, '0')}`;
-                        };
-                        timeDisplay.textContent = `${formatTime(currentTime)} / ${formatTime(duration)}`;
-                    }
+                    const formatTime = (seconds) => {
+    if (isNaN(seconds)) return '0:00';
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+};
+const currentTimeEl = container.querySelector('.current-time');
+const durationTimeEl = container.querySelector('.duration-time');
+if (currentTimeEl) currentTimeEl.textContent = formatTime(currentTime);
+if (durationTimeEl) durationTimeEl.textContent = formatTime(duration);
                     
                     const volumeBtn = container.querySelector('.volume-btn');
                     if (volumeBtn) {
@@ -2107,10 +2104,14 @@ else renderPosts([]);
                                     <div class="youtube-iframe-wrapper"></div>
                                     <div class="video-overlay">
                                         <div class="modern-control-bar">
-                                            <div class="top-progress-container" title="Progress">
-                                                <div class="progress-track"></div>
-                                                <div class="progress-thumb"></div>
-                                            </div>
+                                            <div class="progress-row">
+    <span class="progress-time current-time">0:00</span>
+    <div class="top-progress-container" title="Progress">
+        <div class="progress-track"></div>
+        <div class="progress-thumb"></div>
+    </div>
+    <span class="progress-time duration-time">0:00</span>
+</div>
                                             <div class="controls-row">
                                                 <div class="left-controls">
                                                     <button class="control-btn play-pause-btn" title="Play/Pause">
@@ -2121,9 +2122,6 @@ else renderPosts([]);
                                                             <path d="M464 256A208 208 0 1 0 48 256a208 208 0 1 0 416 0zM0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256zm224-72V328c0 13.3-10.7 24-24 24s-24-10.7-24-24V184c0-13.3 10.7-24 24-24s24 10.7 24 24zm112 0V328c0 13.3-10.7 24-24 24s-24-10.7-24-24V184c0-13.3 10.7-24 24-24s24 10.7 24 24z"/>
                                                         </svg>
                                                     </button>
-                                                </div>
-                                                <div class="center-controls">
-                                                    <span class="time-display">0:00 / 0:00</span>
                                                 </div>
                                                 <div class="right-controls">
                                                     <div class="speed-control">
