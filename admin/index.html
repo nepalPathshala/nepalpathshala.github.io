@@ -59,18 +59,7 @@
             background-color: #2563eb;
             color: white;
         }
-        #notification {
-            transition: transform 0.3s ease-out, opacity 0.3s ease-out;
-            transform: translateY(-20px);
-            opacity: 0;
-            pointer-events: none;
-            z-index: 9999;
-        }
-        #notification.show {
-            transform: translateY(0);
-            opacity: 1;
-            pointer-events: auto;
-        }
+        
 
         /* Custom Dropdown Styles */
         .custom-select-container {
@@ -196,11 +185,7 @@
 </head>
 <body class="bg-gray-50 text-gray-900 h-screen flex overflow-hidden" oncopy="return false" oncut="return false" onpaste="return false">
 
-    <!-- Notification Toast (improved visibility) -->
-    <div id="notification" class="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-2 font-semibold">
-        <i data-lucide="check-circle-2"></i>
-        <span id="notification-text">Success!</span>
-    </div>
+
 
     <!-- Mobile Sidebar Overlay -->
     <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden lg:hidden"></div>
@@ -362,7 +347,12 @@
                             </div>
                         </div>
                     </div>
-
+                    <!-- Notification Toast (improved visibility) -->
+   
+                    <div id="notification" class="hidden mb-3 px-4 py-3 rounded-lg flex items-center space-x-2 font-semibold bg-green-500 text-white">
+    <i data-lucide="check-circle-2"></i>
+    <span id="notification-text">Success!</span>
+                    </div>
                     <div class="pt-4">
                         <button type="submit" id="publishLessonBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition-colors flex items-center justify-center space-x-2 shadow-md">
                             <i data-lucide="book-open" size="20"></i>
@@ -448,29 +438,25 @@
 
         // ----- UI Helpers -----
         function showNotification(message, isError = false) {
-            const notification = document.getElementById('notification');
-            const text = document.getElementById('notification-text');
-            const icon = notification.querySelector('i');
-            
-            text.innerText = message;
-            notification.classList.remove('bg-green-500', 'bg-red-500');
-            if (isError) {
-                notification.classList.add('bg-red-500');
-                icon.setAttribute('data-lucide', 'alert-circle');
-            } else {
-                notification.classList.add('bg-green-500');
-                icon.setAttribute('data-lucide', 'check-circle-2');
-            }
-            lucide.createIcons();
-            
-            // Force reflow to restart animation
-            notification.classList.remove('show');
-            void notification.offsetWidth;
-            notification.classList.add('show');
-            
-            setTimeout(() => {
-                notification.classList.remove('show');
-            }, 4000);
+    const notification = document.getElementById('notification');
+    const text = document.getElementById('notification-text');
+    const icon = notification.querySelector('i');
+
+    text.innerText = message;
+    notification.classList.remove('bg-green-500', 'bg-red-500', 'hidden');
+
+    if (isError) {
+        notification.classList.add('bg-red-500');
+        icon.setAttribute('data-lucide', 'alert-circle');
+    } else {
+        notification.classList.add('bg-green-500');
+        icon.setAttribute('data-lucide', 'check-circle-2');
+    }
+    lucide.createIcons();
+
+    setTimeout(() => {
+        notification.classList.add('hidden');
+    }, 4000);
         }
 
         function setButtonLoading(btn, isLoading) {
