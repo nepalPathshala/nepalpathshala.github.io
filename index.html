@@ -1569,7 +1569,8 @@
                     }
                     
                     this.startUpdateInterval();
-                    
+                    // Auto-start playback when player is ready
+                event.target.playVideo();
                     console.log('YouTube player ready for:', this.videoId);
                 } catch (error) {
                     console.error('Error in onPlayerReady:', error);
