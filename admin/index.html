@@ -440,17 +440,18 @@
         function showNotification(message, isError = false) {
     const notification = document.getElementById('notification');
     const text = document.getElementById('notification-text');
-    const icon = notification.querySelector('i');
 
     text.innerText = message;
     notification.classList.remove('bg-green-500', 'bg-red-500', 'hidden');
 
     if (isError) {
         notification.classList.add('bg-red-500');
-        icon.setAttribute('data-lucide', 'alert-circle');
+        notification.querySelector('svg, i')?.remove();
+        notification.insertAdjacentHTML('afterbegin', '<i data-lucide="alert-circle"></i>');
     } else {
         notification.classList.add('bg-green-500');
-        icon.setAttribute('data-lucide', 'check-circle-2');
+        notification.querySelector('svg, i')?.remove();
+        notification.insertAdjacentHTML('afterbegin', '<i data-lucide="check-circle-2"></i>');
     }
     lucide.createIcons();
 
