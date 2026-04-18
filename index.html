@@ -1249,7 +1249,7 @@
         let selectedClassId = urlParams.get('classId') || null;
         let selectedSubjectId = urlParams.get('subjectId') || null;
         let selectedTutorId = urlParams.get('tutorId') || null;   // Pre‑select tutor from URL
-
+        let lockedTutorId = null;    
         let selectedChapterId = null;   // Chapter is optional, initially null
 
         // Pagination state
