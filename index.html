@@ -1431,18 +1431,19 @@
 
         // Reset to default paginated mode (preserves class/subject/tutor from URL, clears chapter)
         function resetToDefaultModeAndClearFilters() {
-            selectedChapterId = null;
-            currentFeedMode = 'paginated';
-            paginationCursor = null;
-            hasMorePosts = false;
-            isLoadingMore = false;
-            destroyAllPlayers();
-            clearPosts();
-            postsContainer.innerHTML = '<div class="loader"><div class="loader-dot"></div><div class="loader-dot"></div><div class="loader-dot"></div></div>';
-            fetchPaginatedPosts(null, false).then(() => {
-                // Refresh dropdowns (chapter list, tutor stays selected)
-                populateChapterSelect(true);
-            });
+    selectedChapterId = null;
+    currentFeedMode = 'paginated';
+    paginationCursor = null;
+    hasMorePosts = false;
+    isLoadingMore = false;
+    destroyAllPlayers();
+    clearPosts();
+    postsContainer.innerHTML = '<div class="loader"><div class="loader-dot"></div><div class="loader-dot"></div><div class="loader-dot"></div></div>';
+    if (selectedTutorId) {   // ← ADD THIS GUARD
+        fetchPaginatedPosts(null, false).then(() => {
+            populateChapterSelect(true);
+        });
+    }
         }
 
         function clearPosts() {
