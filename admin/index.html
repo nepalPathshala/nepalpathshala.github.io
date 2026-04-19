@@ -347,6 +347,11 @@
                             </div>
                         </div>
                     </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Questions JSON <span class="text-gray-400 font-normal">(optional)</span></label>
+                        <textarea id="questionsJson" rows="6" placeholder='[{"questionNo":1,"questionType":"Objective","questionText":"...","options":["A","B","C","D"],"correctIndex":0,"solutionText":"..."}]' class="w-full rounded-lg border-gray-300 border p-2 focus:ring-2 focus:ring-blue-500 outline-none font-medium font-mono text-xs"></textarea>
+                        <p class="text-xs text-gray-400 mt-1 font-medium">Paste a valid JSON array of question objects. Leave blank to skip.</p>
+                    </div>
                     <!-- Notification Toast for Lesson -->
                     <div id="notification" class="hidden mb-3 px-4 py-3 rounded-lg flex items-center space-x-2 font-semibold bg-green-500 text-white">
                         <i data-lucide="check-circle-2"></i>
@@ -663,13 +668,24 @@
             const description = document.getElementById('lessonDescription').value.trim();
             const videoUrl = document.getElementById('videoUrl').value.trim();
             const thumbnailUrl = document.getElementById('thumbnailUrl').value.trim();
-
+            const questionsRaw = document.getElementById('questionsJson').value.trim();
+            
             if (!selectedClassId) { showNotification('Please select a class', true); return; }
             if (!selectedSubjectId) { showNotification('Please select a subject', true); return; }
             if (!selectedChapterId) { showNotification('Please select a chapter', true); return; }
             if (!title) { showNotification('Lesson title is required', true); return; }
             if (!videoUrl) { showNotification('Video URL is required', true); return; }
-
+            let questions = undefined;
+            if (questionsRaw) {
+                try {
+                    questions = JSON.parse(questionsRaw);
+                    if (!Array.isArray(questions) || questions.length === 0)
+                        throw new Error('Questions must be a non-empty JSON array');
+                } catch (err) {
+                    showNotification('Invalid Questions JSON: ' + err.message, true);
+                    return;
+                }
+            }
             setButtonLoading(btn, true);
             try {
                 const token = await getAuthToken();
@@ -685,7 +701,8 @@
                     postTitle: title,
                     postSubtle: description,
                     videoUrl: videoUrl,
-                    thumbnailUrl: thumbnailUrl || ''
+                    thumbnailUrl: thumbnailUrl || '',
+                    ...(questions !== undefined && { questions })
                 };
 
                 const res = await fetch(`${API_BASE}/tutor/post/create`, {
